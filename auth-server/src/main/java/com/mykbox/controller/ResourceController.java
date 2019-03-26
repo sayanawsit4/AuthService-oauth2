@@ -1,7 +1,10 @@
 package com.mykbox.controller;
 
+import com.mykbox.config.MediUser;
+import org.apache.catalina.Store;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -12,6 +15,8 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.security.Principal;
 import java.util.*;
 
 @RestController
@@ -38,6 +43,14 @@ public class ResourceController {
         OAuth2AccessToken token = tokenService.createAccessToken(auth);
         System.out.println(token.getValue());
         return token.getValue();
+
+    }
+
+    @RequestMapping("/principalcheck")
+    public String getStores(Principal principal){
+        MediUser activeUser = (MediUser) ((Authentication) principal).getPrincipal();
+        System.out.println(activeUser.getEmail());
+        return activeUser.getEmail();
 
     }
 

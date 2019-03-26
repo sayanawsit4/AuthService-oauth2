@@ -2,7 +2,9 @@ package com.mykbox.config;
 
 import java.security.KeyPair;
 
+import com.mykbox.security.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +25,10 @@ public class AuthServerConfigurer
     extends
         AuthorizationServerConfigurerAdapter {
 
+    @Autowired
+    private CustomAccessTokenConverter customAccessTokenConverter;
+
+
     @Value("${jwt.certificate.store.file}")
     private Resource keystore;
 
@@ -35,8 +41,10 @@ public class AuthServerConfigurer
     @Value("${jwt.certificate.key.password}")
     private String keyPassword;
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return new UserDetailsServiceImpl();
+    }
 
     @Override
     public void configure(
@@ -58,7 +66,7 @@ public class AuthServerConfigurer
                 .withClient("vibe")
                 .secret("passwordforvibeserver")
                 .redirectUris("http://localhost:8081/login/oauth2/code/vibe")
-                .authorizedGrantTypes("authorization_code")
+                .authorizedGrantTypes("authorization_code","refresh_token", "implicit","password","client_credentials")
                 .scopes("myscope")
                 .autoApprove(true)
                 .accessTokenValiditySeconds(30)
@@ -70,11 +78,11 @@ public class AuthServerConfigurer
         AuthorizationServerEndpointsConfigurer endpoints)
         throws Exception {
         endpoints
-            .accessTokenConverter(jwtAccessTokenConverter())
-            .userDetailsService(userDetailsService);
+            .accessTokenConverter(accessTokenConverter())
+            .userDetailsService(userDetailsService());
     }
 
-    @Bean
+ /*   @Bean
     public JwtAccessTokenConverter jwtAccessTokenConverter() {
         KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(
             keystore, keystorePassword.toCharArray());
@@ -83,5 +91,17 @@ public class AuthServerConfigurer
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
         converter.setKeyPair(keyPair);
         return converter;
+    }*/
+
+    @Bean
+    public JwtAccessTokenConverter accessTokenConverter() {
+        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(
+                keystore, keystorePassword.toCharArray());
+        KeyPair keyPair = keyStoreKeyFactory.getKeyPair(
+                keyAlias, keyPassword.toCharArray());
+        CustomTokenConverter tokenConverter = new CustomTokenConverter();
+        tokenConverter.setAccessTokenConverter(customAccessTokenConverter);
+         tokenConverter.setKeyPair(keyPair);
+        return tokenConverter;
     }
 }

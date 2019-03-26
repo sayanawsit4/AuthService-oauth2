@@ -29,8 +29,8 @@ public class CustomTokenConverter extends JwtAccessTokenConverter {
        // System.out.println("user is"+currentUser.getUsername());
        // System.out.println("Email is"+currentUser.getEmail());
 
-        MediUser currentUser = (MediUser)authentication.getPrincipal();
-        System.out.println("Email is"+currentUser.getEmail());
+        //MediUser currentUser = (MediUser)authentication.getPrincipal();
+        //System.out.println("Email is"+currentUser.getEmail());
 
            final Map<String, Object> additionalInfo = new HashMap<String, Object>();
             additionalInfo.put("test", "test");

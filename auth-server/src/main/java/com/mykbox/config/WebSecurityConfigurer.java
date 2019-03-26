@@ -65,8 +65,7 @@ public class WebSecurityConfigurer
 //            .roles("USER")
 //            .and()
 //            .withUser("admin").password("admin")
-//            .roles("USER", "ADMIN")
-//            .and().getUserDetailsService();
+//            .roles("USER", "ADMIN");
         auth.userDetailsService(userDetailsService())
                 .passwordEncoder(passwordEncoder());
     }

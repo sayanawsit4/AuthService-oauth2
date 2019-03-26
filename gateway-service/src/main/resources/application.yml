@@ -3,15 +3,15 @@ server:
   contextPath: /
 
 # Configure the Authorization Server and User Info Resource Server details
-#security:
-#  oauth2:
-#    client:
-#      accessTokenUri: http://localhost:7070/authserver/oauth/token
-#      userAuthorizationUri: http://localhost:7070/authserver/oauth/authorize
-#      clientId: vibe
-#      clientSecret: passwordforvibeserver
-#    resource:
-#      userInfoUri: http://localhost:9000/user
+security:
+  oauth2:
+    client:
+      accessTokenUri: http://localhost:7070/authserver/oauth/token
+      userAuthorizationUri: http://localhost:7070/authserver/oauth/authorize
+      clientId: authserver
+      clientSecret: passwordforauthserver
+    resource:
+      userInfoUri: http://localhost:9000/user
 
 person:
   url: http://localhost:9000/person

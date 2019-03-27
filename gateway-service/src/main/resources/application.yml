@@ -16,14 +16,32 @@ security:
 person:
   url: http://localhost:9000/person
 
-zuul:
-  routes:
-    resource:
-      path: /api/**
-      url: http://localhost:9000
-    user: 
-      path: /user/**
-      url: http://localhost:9000/user
+#zuul:
+#  routes:
+#    resource:
+#      path: /api/**
+#      url: http://localhost:9000
+#    user:
+#      path: /user/**
+#      url: http://localhost:9000/user
+
+
+#spring:
+#  cloud:
+#    gateway:
+#      routes:
+#        - predicates:
+#            - Path=/props/**
+#          uri: "http://httpbin.org"
+
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: baeldung_route
+        uri: http://localhost:9000
+        predicates:
+        - Path=/baeldung
 
 # Make sure the OAuth2 token is only relayed when using the internal API,
 # do not pass any authentication to the external API

@@ -54,7 +54,7 @@ public class AuthServerConfigurer
             .inMemory()
             .withClient("authserver")
                 .secret("passwordforauthserver")
-            .redirectUris("http://localhost:8080/")
+            .redirectUris("http://localhost:8080/login/oauth2/code/authserver")
             .authorizedGrantTypes("authorization_code",
              "refresh_token", "implicit","password","client_credentials")
             .scopes("myscope")

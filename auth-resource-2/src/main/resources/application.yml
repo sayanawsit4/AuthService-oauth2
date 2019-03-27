@@ -19,3 +19,4 @@ security:
            NM4+YheC+n8i0SpQZxYRYVjSk8VScGbrh2L/Iw7fBPB1pcxJRmjCDSbEqx6RS6SM
            DwIDAQAB
            -----END PUBLIC KEY-----
+      userInfoUri: http://localhost:9000/user

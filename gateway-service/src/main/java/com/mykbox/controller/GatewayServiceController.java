@@ -36,7 +36,7 @@ public class GatewayServiceController {
         oauth2User.map(OAuth2User::getAttributes).subscribe(System.out::println);
 
         Mono<String> retrievedResource = webClient.get()
-                .uri("http://localhost:9001/person")
+                .uri("http://localhost:9000/person")
                 .attributes(oauth2AuthorizedClient(client))
                 .retrieve()
                 .bodyToMono(String.class);

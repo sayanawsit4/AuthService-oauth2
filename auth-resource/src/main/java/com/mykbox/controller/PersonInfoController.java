@@ -50,7 +50,7 @@ public class PersonInfoController {
         ResponseEntity<String> response = tokenRelayTemplate.getForEntity("http://localhost:9001/person", String.class);
 
         //ResponseEntity<String> response =
-        //ResponseEntity<String> response = restTemplate.getForEntity("http://localhost:9001/person", String.class);
+       // ResponseEntity<String> response = restTemplate.getForEntity("http://localhost:9001/person", String.class);
         return "Success! (" + response.getBody() + ")";
         //return restOperations.getForObject("http://localhost:9001/person", String.class);
        // return "Success! (" + response.getBody() + ")";

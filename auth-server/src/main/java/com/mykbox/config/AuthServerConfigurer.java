@@ -3,9 +3,11 @@ package com.mykbox.config;
 import java.security.KeyPair;
 
 import com.mykbox.security.UserDetailsServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -15,8 +17,16 @@ import org.springframework.security.oauth2.config.annotation.configurers.ClientD
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+import org.springframework.security.oauth2.provider.approval.ApprovalStore;
+import org.springframework.security.oauth2.provider.approval.JdbcApprovalStore;
+import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
+import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
+import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
+import javax.sql.DataSource;
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 
 @Configuration
 @EnableAuthorizationServer
@@ -46,7 +56,39 @@ public class AuthServerConfigurer
         return new UserDetailsServiceImpl();
     }
 
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource")
+    public DataSource oauthDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean
+    public JdbcClientDetailsService clientDetailsService() {
+        return new JdbcClientDetailsService(oauthDataSource());
+    }
+
+    @Bean
+    public TokenStore tokenStore() {
+        System.out.println("inside tokenstore");
+        return new JdbcTokenStore(oauthDataSource());
+    }
+
+    @Bean
+    public ApprovalStore approvalStore() {
+        return new JdbcApprovalStore(oauthDataSource());
+    }
+
+    @Bean
+    public AuthorizationCodeServices authorizationCodeServices() {
+        return new JdbcAuthorizationCodeServices(oauthDataSource());
+    }
+
     @Override
+    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+        clients.withClientDetails(clientDetailsService());
+    }
+
+  /*  @Override
     public void configure(
         ClientDetailsServiceConfigurer clients)
         throws Exception {
@@ -71,13 +113,16 @@ public class AuthServerConfigurer
                 .autoApprove(true)
                 .accessTokenValiditySeconds(30)
                 .refreshTokenValiditySeconds(1800);
-    }
+    }*/
 
     @Override
     public void configure(
         AuthorizationServerEndpointsConfigurer endpoints)
         throws Exception {
         endpoints
+                .approvalStore(approvalStore())
+                .authorizationCodeServices(authorizationCodeServices())
+                .tokenStore(tokenStore())
             .accessTokenConverter(accessTokenConverter())
             .userDetailsService(userDetailsService());
     }
@@ -101,7 +146,7 @@ public class AuthServerConfigurer
                 keyAlias, keyPassword.toCharArray());
         CustomTokenConverter tokenConverter = new CustomTokenConverter();
         tokenConverter.setAccessTokenConverter(customAccessTokenConverter);
-         tokenConverter.setKeyPair(keyPair);
+        tokenConverter.setKeyPair(keyPair);
         return tokenConverter;
     }
 }

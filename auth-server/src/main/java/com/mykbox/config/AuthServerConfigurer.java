@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
@@ -27,6 +28,8 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 import javax.sql.DataSource;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+
 
 @Configuration
 @EnableAuthorizationServer
@@ -35,9 +38,15 @@ public class AuthServerConfigurer
     extends
         AuthorizationServerConfigurerAdapter {
 
+    private AuthenticationManager authenticationManagerBean;
+
     @Autowired
     private CustomAccessTokenConverter customAccessTokenConverter;
 
+    @Autowired
+    public void setAuthenticationManagerBean(AuthenticationManager authenticationManagerBean) {
+        this.authenticationManagerBean = authenticationManagerBean;
+    }
 
     @Value("${jwt.certificate.store.file}")
     private Resource keystore;
@@ -83,6 +92,8 @@ public class AuthServerConfigurer
         return new JdbcAuthorizationCodeServices(oauthDataSource());
     }
 
+
+
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.withClientDetails(clientDetailsService());
@@ -123,6 +134,7 @@ public class AuthServerConfigurer
                 .approvalStore(approvalStore())
                 .authorizationCodeServices(authorizationCodeServices())
                 .tokenStore(tokenStore())
+                .authenticationManager(authenticationManagerBean)
             .accessTokenConverter(accessTokenConverter())
             .userDetailsService(userDetailsService());
     }

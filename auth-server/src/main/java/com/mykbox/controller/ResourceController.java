@@ -1,21 +1,28 @@
 package com.mykbox.controller;
 
 import com.mykbox.config.MediUser;
+import com.mykbox.domain.User;
+import com.mykbox.repository.UserRepository;
 import io.swagger.annotations.Api;
 import org.apache.catalina.Store;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.jwt.Jwt;
+import org.springframework.security.jwt.JwtHelper;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,6 +36,11 @@ public class ResourceController {
 
     @Autowired
     private AuthorizationServerEndpointsConfiguration configuration;
+
+    @Autowired
+    private UserRepository userRepository;
+
+
 
     // TODO: 2/28/2019 :protect this endpoint with xauth headers as per AuthService 1.0 implementation
     @RequestMapping("/gettoken")
@@ -65,6 +77,21 @@ public class ResourceController {
         OAuth2AuthenticationDetails details = (OAuth2AuthenticationDetails) auth.getDetails();
          return user.getName();
 
+    }
+
+    @RequestMapping("/secured/findall")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
+    public String findAll(){
+        String result = "";
+        for(User cust : userRepository.findAll()){
+            result += cust.toString() + "<br>";
+        }
+        return result;
+    }
+
+    @RequestMapping("/secured/user")
+    public Principal user(Principal user,OAuth2Authentication auth) {
+        return user;
     }
 
 }

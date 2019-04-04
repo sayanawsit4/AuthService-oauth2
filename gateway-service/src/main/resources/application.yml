@@ -9,7 +9,7 @@ security:
       accessTokenUri: http://localhost:7070/authserver/oauth/token
       userAuthorizationUri: http://localhost:7070/authserver/oauth/authorize
       clientId: authserver
-        clientSecret: passwordforauthserver
+      clientSecret: passwordforauthserver
     resource:
       userInfoUri: http://localhost:9000/user
 

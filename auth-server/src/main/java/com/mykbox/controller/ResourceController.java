@@ -5,7 +5,9 @@ import com.mykbox.domain.User;
 import com.mykbox.repository.UserRepository;
 import io.swagger.annotations.Api;
 import org.apache.catalina.Store;
+import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,6 +48,7 @@ public class ResourceController {
 
     @Resource(name="tokenStore")
     TokenStore tokenStore;
+
 
 
 
@@ -105,8 +108,8 @@ public class ResourceController {
         OAuth2Request oauth2Request = new OAuth2Request(requestParameters, "authserver", authorities, approved, new HashSet<String>(Arrays.asList("testy")), null, null, responseTypes, null);
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken("piomin", "N/A", authorities);
         OAuth2Authentication auth = new OAuth2Authentication(oauth2Request, authenticationToken);
-         AuthorizationServerTokenServices tokenService = configuration.getEndpointsConfigurer().getTokenServices();
-          OAuth2AccessToken token = tokenService.createAccessToken(auth);
+        AuthorizationServerTokenServices tokenService = configuration.getEndpointsConfigurer().getTokenServices();
+        OAuth2AccessToken token = tokenService.createAccessToken(auth);
         System.out.println(token.getValue());
         return token.getValue();
 
@@ -118,11 +121,13 @@ public class ResourceController {
         List<String> tokenValues = new ArrayList<String>();
         Collection<OAuth2AccessToken> tokens = tokenStore.findTokensByClientId("authserver");
 
+        System.out.println("inside method");
 
         if (tokens!=null){
             for (OAuth2AccessToken token:tokens){
-
-                if(token.getScope().contains("testy"))
+                System.out.println(token.getValue());
+               token.getScope().forEach(s -> System.out.println(s.toString()));
+                 if(token.getScope().contains("testy") && token.getScope().size()==1)
                  tokenValues.add(token.getValue());
             }
         }

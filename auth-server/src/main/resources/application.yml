@@ -13,6 +13,8 @@ jwt:
       alias: myauthkey
       password: sayan
 
+token:
+  validity: 212000
       
 security:
   oauth2:

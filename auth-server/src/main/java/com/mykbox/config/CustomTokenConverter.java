@@ -8,7 +8,10 @@ import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
- import java.util.HashMap;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class CustomTokenConverter extends JwtAccessTokenConverter {
@@ -33,13 +36,13 @@ public class CustomTokenConverter extends JwtAccessTokenConverter {
         //System.out.println("Email is"+currentUser.getEmail());
 
            final Map<String, Object> additionalInfo = new HashMap<String, Object>();
-            additionalInfo.put("test", "test");
-            ((DefaultOAuth2AccessToken) accessToken)
-                    .setAdditionalInformation(additionalInfo);
+            additionalInfo.put("test1", "test1");
+            ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
      //   }
         accessToken = super.enhance(accessToken, authentication);
         ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(new HashMap<>());
          authentication = super.extractAuthentication(additionalInfo);
+        //((DefaultOAuth2AccessToken) accessToken).setScope(new HashSet<String>(Arrays.asList("read")));
          authentication.setDetails(additionalInfo);
 
         return accessToken;

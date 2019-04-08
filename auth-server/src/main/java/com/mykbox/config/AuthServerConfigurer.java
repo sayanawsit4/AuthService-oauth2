@@ -63,6 +63,10 @@ public class AuthServerConfigurer
     @Value("${jwt.certificate.key.password}")
     private String keyPassword;
 
+    @Value("${token.validity}")
+    private Integer validity;
+
+
     @Bean
     public UserDetailsService userDetailsService() {
         return new UserDetailsServiceImpl();
@@ -175,7 +179,7 @@ public class AuthServerConfigurer
         DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setTokenStore(tokenStore());
         defaultTokenServices.setSupportRefreshToken(true);
-        defaultTokenServices.setAccessTokenValiditySeconds(431444);
+        defaultTokenServices.setAccessTokenValiditySeconds(validity);
         defaultTokenServices.setTokenEnhancer(accessTokenConverter());
         return defaultTokenServices;
     }

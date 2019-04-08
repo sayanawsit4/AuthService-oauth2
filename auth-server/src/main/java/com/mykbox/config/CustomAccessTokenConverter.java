@@ -14,6 +14,6 @@ public class CustomAccessTokenConverter extends DefaultAccessTokenConverter {
         OAuth2Authentication authentication
                 = super.extractAuthentication(claims);
         authentication.setDetails(claims);
-        return authentication;
+         return authentication;
     }
 }

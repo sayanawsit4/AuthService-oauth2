@@ -17,16 +17,20 @@ import org.springframework.security.jwt.Jwt;
 import org.springframework.security.jwt.JwtHelper;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
+import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
+import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.security.oauth2.provider.token.ConsumerTokenServices;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.security.Principal;
 import java.util.*;
 
@@ -39,6 +43,10 @@ public class ResourceController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Resource(name="tokenStore")
+    TokenStore tokenStore;
+
 
 
 
@@ -53,15 +61,80 @@ public class ResourceController {
         responseTypes.add("code");
         List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + "USER"));
-        OAuth2Request oauth2Request = new OAuth2Request(requestParameters, "authserver", authorities, approved, new HashSet<String>(Arrays.asList("myscope")), null, null, responseTypes, null);
+        OAuth2Request oauth2Request = new OAuth2Request(requestParameters, "authserver", authorities, approved, new HashSet<String>(Arrays.asList("testy")), null, null, responseTypes, null);
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken("piomin", "N/A", authorities);
         OAuth2Authentication auth = new OAuth2Authentication(oauth2Request, authenticationToken);
-        AuthorizationServerTokenServices tokenService = configuration.getEndpointsConfigurer().getTokenServices();
-        OAuth2AccessToken token = tokenService.createAccessToken(auth);
+
+        DefaultTokenServices tokenServices = new DefaultTokenServices();
+        tokenServices.setTokenStore(configuration.getEndpointsConfigurer().getTokenStore());
+        tokenServices.setSupportRefreshToken(true);
+        tokenServices.setClientDetailsService(configuration.getEndpointsConfigurer().getClientDetailsService());
+        tokenServices.setTokenEnhancer(configuration.getEndpointsConfigurer().getTokenEnhancer());
+        tokenServices.setAccessTokenValiditySeconds(217200);
+
+       // ConsumerTokenServices tokenServices2 =configuration.getEndpointsConfigurer().getConsumerTokenServices();
+
+       // AuthorizationServerTokenServices tokenService = (DefaultTokenServices)tokenServices2; //new DefaultTokenServices();
+        // configuration.getEndpointsConfigurer().getTokenServices();
+
+       // ClientDetailsService clientDetailsService = configuration.getEndpointsConfigurer().getClientDetailsService();
+       // ClientDetails clientDetails = clientDetailsService.loadClientByClientId("authserver");
+        //clientDetails.
+
+
+
+        //AuthorizationServerTokenServices tokenService = configuration.getEndpointsConfigurer().getTokenServices();
+         OAuth2AccessToken token = tokenServices.createAccessToken(auth);
+
+        System.out.println(token.getExpiration());
         System.out.println(token.getValue());
         return token.getValue();
 
     }
+
+    @RequestMapping("/gettokenExtended")
+    public @ResponseBody
+    String gettokenExtended() {
+
+        Map<String, String> requestParameters = new HashMap<String, String>();
+        boolean approved = true;
+        Set<String> responseTypes = new HashSet<String>();
+        responseTypes.add("code");
+        List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + "USER"));
+        OAuth2Request oauth2Request = new OAuth2Request(requestParameters, "authserver", authorities, approved, new HashSet<String>(Arrays.asList("testy")), null, null, responseTypes, null);
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken("piomin", "N/A", authorities);
+        OAuth2Authentication auth = new OAuth2Authentication(oauth2Request, authenticationToken);
+         AuthorizationServerTokenServices tokenService = configuration.getEndpointsConfigurer().getTokenServices();
+          OAuth2AccessToken token = tokenService.createAccessToken(auth);
+        System.out.println(token.getValue());
+        return token.getValue();
+
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/tokens")
+    @ResponseBody
+    public List<String> getTokens() {
+        List<String> tokenValues = new ArrayList<String>();
+        Collection<OAuth2AccessToken> tokens = tokenStore.findTokensByClientId("authserver");
+
+
+        if (tokens!=null){
+            for (OAuth2AccessToken token:tokens){
+
+                if(token.getScope().contains("testy"))
+                 tokenValues.add(token.getValue());
+            }
+        }
+        return tokenValues;
+    }
+
+//    @RequestMapping(method = RequestMethod.POST, value = "/tokens/revoke/")
+//    @ResponseBody
+//    public String revokeToken() {
+//        tokenServices.revokeToken(tokenId);
+//        return tokenId;
+//    }
 
     @RequestMapping("/principalcheck")
     public String getStores(Principal principal){

@@ -2,8 +2,11 @@ package com.mykbox.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
 import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
@@ -14,7 +17,15 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import com.mykbox.security.UserDetailsServiceImpl;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import javax.sql.DataSource;
+import java.security.KeyPair;
 
 
 @Configuration
@@ -58,7 +69,7 @@ public class WebSecurityConfigurer
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/gettoken","/webjars/**","/resources/**");
+        web.ignoring().antMatchers("/gettoken","/tokens","/webjars/**","/resources/**");
     }
 
 
@@ -86,6 +97,22 @@ public class WebSecurityConfigurer
         auth.userDetailsService(userDetailsService())
                 .passwordEncoder(passwordEncoder());
     }
+
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource")
+    public DataSource oauthDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+
+    @Bean
+    public TokenStore tokenStore() {
+        System.out.println("inside tokenstore");
+        return new JdbcTokenStore(oauthDataSource());
+        //return new JwtTokenStore(accessTokenConverter());
+    }
+
+
 
 
 //    @Override

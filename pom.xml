@@ -10,10 +10,9 @@
 
     <modules>
         <module>gateway-service</module>
-		<module>auth-resource</module>
-        <module>auth-resource-2</module>
+		<!--<module>auth-resource</module>-->
+        <!--<module>auth-resource-2</module>-->
 		<module>auth-server</module>
     </modules>
 
 </project>
-

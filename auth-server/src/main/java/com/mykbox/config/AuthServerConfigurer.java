@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,8 +24,10 @@ import org.springframework.security.oauth2.provider.approval.JdbcApprovalStore;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 import javax.sql.DataSource;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
@@ -73,13 +76,15 @@ public class AuthServerConfigurer
 
     @Bean
     public JdbcClientDetailsService clientDetailsService() {
+
         return new JdbcClientDetailsService(oauthDataSource());
     }
 
     @Bean
     public TokenStore tokenStore() {
         System.out.println("inside tokenstore");
-        return new JdbcTokenStore(oauthDataSource());
+       return new JdbcTokenStore(oauthDataSource());
+        //return new JwtTokenStore(accessTokenConverter());
     }
 
     @Bean
@@ -135,8 +140,10 @@ public class AuthServerConfigurer
                 .authorizationCodeServices(authorizationCodeServices())
                 .tokenStore(tokenStore())
                 .authenticationManager(authenticationManagerBean)
+                .tokenServices(tokenServices())
             .accessTokenConverter(accessTokenConverter())
-            .userDetailsService(userDetailsService());
+            .userDetailsService(userDetailsService())
+           ;
     }
 
  /*   @Bean
@@ -160,5 +167,16 @@ public class AuthServerConfigurer
         tokenConverter.setAccessTokenConverter(customAccessTokenConverter);
         tokenConverter.setKeyPair(keyPair);
         return tokenConverter;
+    }
+
+    @Bean
+    @Primary
+    public DefaultTokenServices tokenServices() {
+        DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+        defaultTokenServices.setTokenStore(tokenStore());
+        defaultTokenServices.setSupportRefreshToken(true);
+        defaultTokenServices.setAccessTokenValiditySeconds(431444);
+        defaultTokenServices.setTokenEnhancer(accessTokenConverter());
+        return defaultTokenServices;
     }
 }

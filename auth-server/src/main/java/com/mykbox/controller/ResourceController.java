@@ -58,6 +58,7 @@ public class ResourceController {
     public @ResponseBody
     String gettoken() {
 
+        System.out.println("get token123");
         Map<String, String> requestParameters = new HashMap<String, String>();
         boolean approved = true;
         Set<String> responseTypes = new HashSet<String>();
@@ -111,7 +112,7 @@ public class ResourceController {
         AuthorizationServerTokenServices tokenService = configuration.getEndpointsConfigurer().getTokenServices();
         OAuth2AccessToken token = tokenService.createAccessToken(auth);
         System.out.println(token.getValue());
-        return token.getValue();
+         return token.getValue();
 
     }
 
@@ -159,12 +160,12 @@ public class ResourceController {
 
     @RequestMapping("/secured/findall")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public String findAll(){
+    public List findAll(){
         String result = "";
         for(User cust : userRepository.findAll()){
             result += cust.toString() + "<br>";
         }
-        return result;
+      return userRepository.findAll();
     }
 
     @RequestMapping("/secured/user")

@@ -92,9 +92,9 @@ public class User {
 		this.authorities = authorities;
 	}
 
-	@Override
+/*	@Override
 	public String toString() {
 		return String.format("Customer[name=%d, email='%s']", username, email);
-	}
+	}*/
 
 }

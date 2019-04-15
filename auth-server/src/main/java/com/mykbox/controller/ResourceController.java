@@ -4,12 +4,8 @@ import com.mykbox.config.MediUser;
 import com.mykbox.domain.User;
 import com.mykbox.repository.UserRepository;
 import io.swagger.annotations.Api;
-import org.apache.catalina.Store;
-import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,27 +13,32 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.jwt.Jwt;
 import org.springframework.security.jwt.JwtHelper;
+import org.springframework.security.jwt.crypto.sign.RsaSigner;
+import org.springframework.security.jwt.crypto.sign.RsaVerifier;
+import org.springframework.security.jwt.crypto.sign.SignatureVerifier;
+import org.springframework.security.jwt.crypto.sign.Signer;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
-import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
-import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
-import org.springframework.security.oauth2.provider.token.ConsumerTokenServices;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.security.KeyPair;
 import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 
 @RestController
-@Api(value="Authentication API", description="Authenticate user using authorization token.")
+@Api(value = "Authentication API", description = "Authenticate user using authorization token.")
 public class ResourceController {
 
     @Autowired
@@ -46,12 +47,23 @@ public class ResourceController {
     @Autowired
     private UserRepository userRepository;
 
-    @Resource(name="tokenStore")
+    @Resource(name = "tokenStore")
     TokenStore tokenStore;
 
+    @Value("${jwt.certificate.store.file}")
+    private org.springframework.core.io.Resource keystore;
 
+    @Value("${jwt.certificate.store.password}")
+    private String keystorePassword;
 
+    @Value("${jwt.certificate.key.alias}")
+    private String keyAlias;
 
+    @Value("${jwt.certificate.key.password}")
+    private String keyPassword;
+
+    @Value("${token.validity}")
+    private Integer validity;
 
     // TODO: 2/28/2019 :protect this endpoint with xauth headers as per AuthService 1.0 implementation
     @RequestMapping("/gettoken")
@@ -76,25 +88,51 @@ public class ResourceController {
         tokenServices.setTokenEnhancer(configuration.getEndpointsConfigurer().getTokenEnhancer());
         tokenServices.setAccessTokenValiditySeconds(217200);
 
-       // ConsumerTokenServices tokenServices2 =configuration.getEndpointsConfigurer().getConsumerTokenServices();
+        // ConsumerTokenServices tokenServices2 =configuration.getEndpointsConfigurer().getConsumerTokenServices();
 
-       // AuthorizationServerTokenServices tokenService = (DefaultTokenServices)tokenServices2; //new DefaultTokenServices();
+        // AuthorizationServerTokenServices tokenService = (DefaultTokenServices)tokenServices2; //new DefaultTokenServices();
         // configuration.getEndpointsConfigurer().getTokenServices();
 
-       // ClientDetailsService clientDetailsService = configuration.getEndpointsConfigurer().getClientDetailsService();
-       // ClientDetails clientDetails = clientDetailsService.loadClientByClientId("authserver");
+        // ClientDetailsService clientDetailsService = configuration.getEndpointsConfigurer().getClientDetailsService();
+        // ClientDetails clientDetails = clientDetailsService.loadClientByClientId("authserver");
         //clientDetails.
 
 
-
         //AuthorizationServerTokenServices tokenService = configuration.getEndpointsConfigurer().getTokenServices();
-         OAuth2AccessToken token = tokenServices.createAccessToken(auth);
+        OAuth2AccessToken token = tokenServices.createAccessToken(auth);
 
         System.out.println(token.getExpiration());
         System.out.println(token.getValue());
         return token.getValue();
 
     }
+
+    @RequestMapping("/getjwttoken")
+    public @ResponseBody
+    String tokenverify(){
+       // Jwt jwt = JwtHelper.decode("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJwaW9taW4iLCJzY29wZSI6WyJ0ZXN0eSJdLCJleHAiOjE1NTUyNDUwMDIsInRlc3QxIjoidGVzdDIiLCJhdXRob3JpdGllcyI6WyJST0xFX1VTRVIiXSwianRpIjoiN2IzZjAwMTktM2M0My00YzJiLWEyNDctODUxZGE4ZDVmY2QzIiwiY2xpZW50X2lkIjoiYXV0aHNlcnZlciJ9.T_4kflIshWp9csj3x69mZeDjljfs6UsWXaVgsgwxh-lL6CQIsJfj08gq8GJPbRrPpMCuHDgo382DZccSFog48aWRF0-sQN1Aa6yp0LapLFa_tLoGLXRdNLbOTQGwtHa0ZGFHmbxPkAkEuA1ldfzdE0poEzblLwAi1Olmswc2ltnVnkXauF-mDFLIgQvGR9gugyLvXDqAmB2p4eKYcXCJPV08hTM7zqj4NP4d8VU_7YLq-G8BpXQSaYQwSYvwPwusr2Ubjw4RXMndPl0s-647Ixpe6rM4qcPp-9CdkdqvDnfJyGobSnxqWRjRtglrrYe6sTJfcMeRvfgiiDVyBJR4tw");
+        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(
+                keystore, keystorePassword.toCharArray());
+        KeyPair keyPair = keyStoreKeyFactory.getKeyPair(
+                keyAlias, keyPassword.toCharArray());
+        PrivateKey privateKey = keyPair.getPrivate();
+        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+         //Signer signer = new RsaSigner((RSAPrivateKey) privateKey);
+        SignatureVerifier verifier = new RsaVerifier(publicKey);
+        String content="";
+        try {
+            Jwt jwt= JwtHelper.decodeAndVerify("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJwaW9taW4iLCJzY29wZSI6WyJ0ZXN0eSJdLCJleHAiOjE1NTUyNDUwMDIsInRlc3QxIjoidGVzdDIiLCJhdXRob3JpdGllcyI6WyJST0xFX1VTRVIiXSwianRpIjoiN2IzZjAwMTktM2M0My00YzJiLWEyNDctODUxZGE4ZDVmY2QzIiwiY2xpZW50X2lkIjoiYXV0aHNlcnZlciJ9.T_4kflIshWp9csj3x69mZeDjljfs6UsWXaVgsgwxh-lL6CQIsJfj08gq8GJPbRrPpMCuHDgo382DZccSFog48aWRF0-sQN1Aa6yp0LapLFa_tLoGLXRdNLbOTQGwtHa0ZGFHmbxPkAkEuA1ldfzdE0poEzblLwAi1Olmswc2ltnVnkXauF-mDFLIgQvGR9gugyLvXDqAmB2p4eKYcXCJPV08hTM7zqj4NP4d8VU_7YLq-G8BpXQSaYQwSYvwPwusr2Ubjw4RXMndPl0s-647Ixpe6rM4qcPp-9CdkdqvDnfJyGobSnxqWRjRtglrrYe6sTJfcMeRvfgiiDVyBJR4tw", verifier);
+            content = jwt.getClaims();
+         }
+        catch (Exception e) {
+            throw new IllegalArgumentException("Cannot decode access token from JSON", e);
+        }
+
+
+        return content.toString();
+
+    }
+
 
     @RequestMapping("/gettokenExtended")
     public @ResponseBody
@@ -112,7 +150,7 @@ public class ResourceController {
         AuthorizationServerTokenServices tokenService = configuration.getEndpointsConfigurer().getTokenServices();
         OAuth2AccessToken token = tokenService.createAccessToken(auth);
         System.out.println(token.getValue());
-         return token.getValue();
+        return token.getValue();
 
     }
 
@@ -124,12 +162,12 @@ public class ResourceController {
 
         System.out.println("inside method");
 
-        if (tokens!=null){
-            for (OAuth2AccessToken token:tokens){
+        if (tokens != null) {
+            for (OAuth2AccessToken token : tokens) {
                 System.out.println(token.getValue());
-               token.getScope().forEach(s -> System.out.println(s.toString()));
-                 if(token.getScope().contains("testy") && token.getScope().size()==1)
-                 tokenValues.add(token.getValue());
+                token.getScope().forEach(s -> System.out.println(s.toString()));
+                if (token.getScope().contains("testy") && token.getScope().size() == 1)
+                    tokenValues.add(token.getValue());
             }
         }
         return tokenValues;
@@ -143,7 +181,7 @@ public class ResourceController {
 //    }
 
     @RequestMapping("/principalcheck")
-    public String getStores(Principal principal){
+    public String getStores(Principal principal) {
         MediUser activeUser = (MediUser) ((Authentication) principal).getPrincipal();
         System.out.println(activeUser.getEmail());
         return activeUser.getEmail();
@@ -152,24 +190,33 @@ public class ResourceController {
 
     @RequestMapping("/secured/userdetails")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public String userdetails(Principal user, OAuth2Authentication auth){
+    public String userdetails(Principal user, OAuth2Authentication auth) {
         OAuth2AuthenticationDetails details = (OAuth2AuthenticationDetails) auth.getDetails();
-         return user.getName();
+        return user.getName();
 
     }
 
     @RequestMapping("/secured/findall")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public List findAll(){
-        String result = "";
-        for(User cust : userRepository.findAll()){
-            result += cust.toString() + "<br>";
+    public List findAll() {
+        return userRepository.findAll();
+    }
+
+    @RequestMapping("/secured/save")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
+    public String process(@RequestBody User user) {
+        Optional<User> temp = Optional.ofNullable(userRepository.findByEmail(user.getEmail()));
+        if (temp.isPresent()) {
+            user.setUserId(temp.get().getUserId());
+            userRepository.save(user);
+        } else {
+            userRepository.save(user);
         }
-      return userRepository.findAll();
+        return "done";
     }
 
     @RequestMapping("/secured/user")
-    public Principal user(Principal user,OAuth2Authentication auth) {
+    public Principal user(Principal user, OAuth2Authentication auth) {
         return user;
     }
 

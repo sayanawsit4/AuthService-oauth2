@@ -1,5 +1,8 @@
 package com.mykbox.domain;
 
+import lombok.Data;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 import org.hibernate.validator.constraints.Email;
 
 import javax.persistence.*;
@@ -7,16 +10,24 @@ import javax.validation.constraints.Size;
 import java.util.Set;
 
 @Entity
+@Data
 @Table(name = "user",schema = "viomeauth2")
 public class User {
 
+
+	//@GeneratedValue(strategy = GenerationType.AUTO)
 	@Id
-	@Column(updatable = false, nullable = false)
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	//@Generated(GenerationTime.ALWAYS)
+	@Column(name = "user_id")
+	private Long userId;
+
 	@Size(min = 0, max = 50)
 	private String username;
 
 	@Size(min = 0, max = 500)
 	private String password;
+
 
 	@Email
 	@Size(min = 0, max = 50)
@@ -33,64 +44,64 @@ public class User {
 	private String resetPasswordKey;
 
 	@ManyToMany
-	@JoinTable(name = "user_authority", joinColumns = @JoinColumn(name = "username"), inverseJoinColumns = @JoinColumn(name = "authority"))
+	@JoinTable(name = "user_authority", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "authority"))
 	private Set<Authority> authorities;
 
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public boolean isActivated() {
-		return activated;
-	}
-
-	public void setActivated(boolean activated) {
-		this.activated = activated;
-	}
-
-	public String getActivationKey() {
-		return activationKey;
-	}
-
-	public void setActivationKey(String activationKey) {
-		this.activationKey = activationKey;
-	}
-
-	public String getResetPasswordKey() {
-		return resetPasswordKey;
-	}
-
-	public void setResetPasswordKey(String resetPasswordKey) {
-		this.resetPasswordKey = resetPasswordKey;
-	}
-
-	public Set<Authority> getAuthorities() {
-		return authorities;
-	}
-
-	public void setAuthorities(Set<Authority> authorities) {
-		this.authorities = authorities;
-	}
+//	public String getUsername() {
+//		return username;
+//	}
+//
+//	public void setUsername(String username) {
+//		this.username = username;
+//	}
+//
+//	public String getPassword() {
+//		return password;
+//	}
+//
+//	public void setPassword(String password) {
+//		this.password = password;
+//	}
+//
+//	public String getEmail() {
+//		return email;
+//	}
+//
+//	public void setEmail(String email) {
+//		this.email = email;
+//	}
+//
+//	public boolean isActivated() {
+//		return activated;
+//	}
+//
+//	public void setActivated(boolean activated) {
+//		this.activated = activated;
+//	}
+//
+//	public String getActivationKey() {
+//		return activationKey;
+//	}
+//
+//	public void setActivationKey(String activationKey) {
+//		this.activationKey = activationKey;
+//	}
+//
+//	public String getResetPasswordKey() {
+//		return resetPasswordKey;
+//	}
+//
+//	public void setResetPasswordKey(String resetPasswordKey) {
+//		this.resetPasswordKey = resetPasswordKey;
+//	}
+//
+//	public Set<Authority> getAuthorities() {
+//		return authorities;
+//	}
+//
+//	public void setAuthorities(Set<Authority> authorities) {
+//		this.authorities = authorities;
+//	}
 
 /*	@Override
 	public String toString() {

@@ -61,8 +61,6 @@ public class AttemptsLogger {
             AccessAudit accessAudit = new AccessAudit();
             accessAudit.setEmail(auditEvent.getPrincipal());
             auditRepository.save(accessAudit);
-            //accessAudit.se
-            //auditRepository.save()
 
         }
 

@@ -170,7 +170,7 @@ public class AuthServerConfigurer
         CustomTokenConverter tokenConverter = new CustomTokenConverter();
         tokenConverter.setAccessTokenConverter(customAccessTokenConverter);
         tokenConverter.setKeyPair(keyPair);
-        return tokenConverter;
+         return tokenConverter;
     }
 
     @Bean

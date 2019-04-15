@@ -69,7 +69,7 @@ public class WebSecurityConfigurer
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/gettoken","/tokens","/webjars/**","/resources/**");
+        web.ignoring().antMatchers("/gettoken","/tokens","/webjars/**","/resources/**","/getjwttoken/**");
     }
 
 

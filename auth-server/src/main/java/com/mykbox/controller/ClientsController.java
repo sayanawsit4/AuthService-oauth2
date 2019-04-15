@@ -1,8 +1,6 @@
 package com.mykbox.controller;
 
-
 import com.mykbox.config.AuthorityPropertyEditor;
-import com.mykbox.config.SplitCollectionEditor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,39 +12,29 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
-import java.util.Set;
+import java.util.Optional;
 
-/**
- * Created by ahmed on 21.5.18.
- */
 @Controller
 @RequestMapping("clients")
 public class ClientsController {
+
     @Autowired
     private JdbcClientDetailsService clientsDetailsService;
+
     @InitBinder
-    public void initBinder(WebDataBinder binder){
-
-        binder.registerCustomEditor(Collection.class,new SplitCollectionEditor(Set.class,","));
-        binder.registerCustomEditor(GrantedAuthority.class,new AuthorityPropertyEditor());
-
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(GrantedAuthority.class, new AuthorityPropertyEditor());
     }
 
-
-    @RequestMapping(value="/form",method= RequestMethod.GET)
+    @RequestMapping(value = "/form", method = RequestMethod.GET)
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public String showEditForm(@RequestParam(value="client",required=false)String clientId, Model model){
+    public String showEditForm(@RequestParam(value = "client", required = false) String clientId, Model model) {
 
         ClientDetails clientDetails;
-        if(clientId !=null){
-            clientDetails=clientsDetailsService.loadClientByClientId(clientId);
-        }
-        else{
-            clientDetails =new BaseClientDetails();
-        }
-
-        model.addAttribute("clientDetails",clientDetails);
+        clientDetails = Optional.ofNullable(clientId)
+                .map(s -> clientsDetailsService.loadClientByClientId(s))
+                .orElse(new BaseClientDetails());
+        model.addAttribute("clientDetails", clientDetails);
         return "form";
     }
 
@@ -55,24 +43,20 @@ public class ClientsController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String editClient(
             @ModelAttribute BaseClientDetails clientDetails,
-            @RequestParam(value = "newClient", required = false) String newClient
-    ) {
-        if (newClient == null) {
+            @RequestParam(value = "newClient", required = false) Optional <String> newClient) {
 
-            clientsDetailsService.updateClientDetails(clientDetails);
-        } else {
-            clientsDetailsService.addClientDetails(clientDetails);
-        }
+     if(newClient.isPresent())
+         clientsDetailsService.addClientDetails(clientDetails);
+     else
+         clientsDetailsService.updateClientDetails(clientDetails);
 
-
-        if (!clientDetails.getClientSecret().isEmpty()) {
-            clientsDetailsService.updateClientSecret(clientDetails.getClientId(), clientDetails.getClientSecret());
-        }
+     Optional.ofNullable(clientDetails.getClientSecret())
+            .ifPresent( s -> clientsDetailsService.updateClientSecret(clientDetails.getClientId(), clientDetails.getClientSecret()));
         return "redirect:/";
     }
 
-    @RequestMapping(value="/{client.clientId}/delete",method = RequestMethod.GET)
-    public String deleteClient(@ModelAttribute BaseClientDetails ClientDetails,@PathVariable("client.clientId") String id){
+    @RequestMapping(value = "/{client.clientId}/delete", method = RequestMethod.GET)
+    public String deleteClient(@ModelAttribute BaseClientDetails ClientDetails, @PathVariable("client.clientId") String id) {
         clientsDetailsService.removeClientDetails(id);
         return "redirect:/";
     }

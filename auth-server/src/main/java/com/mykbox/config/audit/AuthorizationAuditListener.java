@@ -27,12 +27,9 @@ public class AuthorizationAuditListener extends AbstractAuthorizationAuditListen
         data.put("type", event.getAccessDeniedException().getClass().getName());
         data.put("message", event.getAccessDeniedException().getMessage());
         data.put("requestUrl", ((FilterInvocation)event.getSource()).getRequestUrl() );
-
         if (event.getAuthentication().getDetails() != null) {
             data.put("details",event.getAuthentication().getDetails());
         }
         publish(new AuditEvent(event.getAuthentication().getName(),AUTHORIZATION_FAILURE, data));
     }
-
-
 }

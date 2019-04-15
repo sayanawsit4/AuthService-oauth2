@@ -1,8 +1,8 @@
 package com.mykbox.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.jwt.Jwt;
-import org.springframework.security.jwt.JwtHelper;
+//import org.springframework.security.jwt.Jwt;
+//import org.springframework.security.jwt.JwtHelper;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
@@ -19,18 +19,18 @@ import java.util.Map;
  */
 @RestController
 public class ResourceController {
-    @Autowired
-    private TokenStore tokenStore;
+//    @Autowired
+//    private TokenStore tokenStore;
 
     @RequestMapping("/user")
     public Principal user(Principal user,OAuth2Authentication auth) {
-        final OAuth2AuthenticationDetails details = (OAuth2AuthenticationDetails) auth.getDetails();
-        final OAuth2AccessToken accessToken = tokenStore.readAccessToken(details.getTokenValue());
-        System.out.println(accessToken.getValue());
-        Jwt jwtToken = JwtHelper.decode(accessToken.getValue());
-        System.out.println(accessToken.getAdditionalInformation().get("test"));
-        System.out.println(jwtToken.getClaims());
-        System.out.println(details.getDecodedDetails());
+//        final OAuth2AuthenticationDetails details = (OAuth2AuthenticationDetails) auth.getDetails();
+//        final OAuth2AccessToken accessToken = tokenStore.readAccessToken(details.getTokenValue());
+//        System.out.println(accessToken.getValue());
+//        Jwt jwtToken = JwtHelper.decode(accessToken.getValue());
+//        System.out.println(accessToken.getAdditionalInformation().get("test"));
+//        System.out.println(jwtToken.getClaims());
+//        System.out.println(details.getDecodedDetails());
         return user;
     }
 

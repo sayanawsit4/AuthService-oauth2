@@ -145,9 +145,10 @@ public class AuthServerConfigurer
                 .tokenStore(tokenStore())
                 .authenticationManager(authenticationManagerBean)
                 .tokenServices(tokenServices())
-            .accessTokenConverter(accessTokenConverter())
+            //.accessTokenConverter(accessTokenConverter())
             .userDetailsService(userDetailsService())
            ;
+
     }
 
  /*   @Bean

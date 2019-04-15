@@ -16,7 +16,7 @@ import java.security.Principal;
 @RestController
 public class PersonInfoController {
 
-    private TokenStore tokenStore;
+   // private TokenStore tokenStore;
 
     @GetMapping("/person")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")

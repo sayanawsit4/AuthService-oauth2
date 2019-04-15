@@ -1,6 +1,7 @@
 package com.mykbox.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
@@ -16,14 +17,16 @@ import java.security.Principal;
 @RestController
 public class PersonInfoController {
 
-   // private TokenStore tokenStore;
+//    private TokenStore tokenStore;
 
     @GetMapping("/person")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
     public @ResponseBody Person personInfo(Principal user, OAuth2Authentication auth) {
 
-        // details = (OAuth2AuthenticationDetails) auth.getDetails();
-        //OAuth2AccessToken accessToken = tokenStore.readAccessToken(details.getTokenValue());
+        //final OAuth2AuthenticationDetails details = (OAuth2AuthenticationDetails) auth.getDetails();
+        //final OAuth2AccessToken accessToken = tokenStore.readAccessToken(details.getTokenValue());
+       // System.out.println("sccaccessToken.getValue());
+       // OAuth2AccessToken accessToken = tokenStore.readAccessToken(details.getTokenValue());
 
         //ystem.out.println("sdfsdfsfddsfsdf"+details.getTokenValue());
 

@@ -19,14 +19,16 @@ import java.util.Map;
  */
 @RestController
 public class ResourceController {
-//    @Autowired
-//    private TokenStore tokenStore;
+
+
+    @Autowired
+    private TokenStore tokenStore;
 
     @RequestMapping("/user")
     public Principal user(Principal user,OAuth2Authentication auth) {
-//        final OAuth2AuthenticationDetails details = (OAuth2AuthenticationDetails) auth.getDetails();
-//        final OAuth2AccessToken accessToken = tokenStore.readAccessToken(details.getTokenValue());
-//        System.out.println(accessToken.getValue());
+        final OAuth2AuthenticationDetails details = (OAuth2AuthenticationDetails) auth.getDetails();
+        final OAuth2AccessToken accessToken = tokenStore.readAccessToken(details.getTokenValue());
+        System.out.println(accessToken.getValue());
 //        Jwt jwtToken = JwtHelper.decode(accessToken.getValue());
 //        System.out.println(accessToken.getAdditionalInformation().get("test"));
 //        System.out.println(jwtToken.getClaims());

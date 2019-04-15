@@ -137,21 +137,23 @@ public class AuthServerConfigurer
 
     @Override
     public void configure(
-        AuthorizationServerEndpointsConfigurer endpoints)
-        throws Exception {
+            AuthorizationServerEndpointsConfigurer endpoints)
+            throws Exception {
         endpoints
                 .approvalStore(approvalStore())
                 .authorizationCodeServices(authorizationCodeServices())
                 .tokenStore(tokenStore())
                 .authenticationManager(authenticationManagerBean)
                 .tokenServices(tokenServices())
-            //.accessTokenConverter(accessTokenConverter())
-            .userDetailsService(userDetailsService())
-           ;
+                //if(true).accessTokenConverter(accessTokenConverter())
+                .userDetailsService(userDetailsService());
 
+        if(true) endpoints.accessTokenConverter(accessTokenConverter());
     }
 
- /*   @Bean
+
+
+   @Bean
     public JwtAccessTokenConverter jwtAccessTokenConverter() {
         KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(
             keystore, keystorePassword.toCharArray());
@@ -160,7 +162,7 @@ public class AuthServerConfigurer
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
         converter.setKeyPair(keyPair);
         return converter;
-    }*/
+    }
 
     @Bean
     public JwtAccessTokenConverter accessTokenConverter() {

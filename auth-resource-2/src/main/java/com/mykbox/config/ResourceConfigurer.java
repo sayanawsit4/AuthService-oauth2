@@ -1,5 +1,6 @@
 package com.mykbox.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -32,14 +33,25 @@ public class ResourceConfigurer extends ResourceServerConfigurerAdapter {
     }
 
     @Bean
+    //@ConditionalOnProperty(name = "token-type",havingValue = "token")
     @ConfigurationProperties(prefix="spring.datasource")
     public DataSource ouathDataSource(){return DataSourceBuilder.create().build();}
 
-    @Override
-    public void configure(ResourceServerSecurityConfigurer resources)throws Exception{
-
-        TokenStore tokenStore=new JdbcTokenStore(ouathDataSource());
-        resources.resourceId("product_api").tokenStore(tokenStore);
-
+    @Bean
+    //@ConditionalOnProperty(name = "token-type",havingValue = "token")
+    public TokenStore tokenStore() {
+        System.out.println("inside tokenstore");
+        return new JdbcTokenStore(ouathDataSource());
+        //return new JwtTokenStore(accessTokenConverter());
     }
+
+    @Override
+        public void configure (ResourceServerSecurityConfigurer resources)throws Exception {
+        //TokenStore tokenStore=new JdbcTokenStore(ouathDataSource());
+       if(true)
+        resources.resourceId("product_api").tokenStore(tokenStore());
+
+       // resources.resourceId("product_api").;
+     }
+
 }

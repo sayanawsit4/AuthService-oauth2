@@ -80,8 +80,7 @@ public class AuthServerConfigurer
 
     @Bean
     public JdbcClientDetailsService clientDetailsService() {
-
-        return new JdbcClientDetailsService(oauthDataSource());
+         return new JdbcClientDetailsService(oauthDataSource());
     }
 
     @Bean
@@ -148,7 +147,7 @@ public class AuthServerConfigurer
                 //if(true).accessTokenConverter(accessTokenConverter())
                 .userDetailsService(userDetailsService());
 
-        if(true) endpoints.accessTokenConverter(accessTokenConverter());
+        if(false) endpoints.accessTokenConverter(accessTokenConverter());
     }
 
 

@@ -35,7 +35,9 @@ public class ResourceConfigurer extends ResourceServerConfigurerAdapter {
     @Bean
     //@ConditionalOnProperty(name = "token-type",havingValue = "token")
     @ConfigurationProperties(prefix="spring.datasource")
-    public DataSource ouathDataSource(){return DataSourceBuilder.create().build();}
+    public DataSource ouathDataSource(){
+        return DataSourceBuilder.create().build();
+    }
 
     @Bean
     //@ConditionalOnProperty(name = "token-type",havingValue = "token")

@@ -4,18 +4,18 @@ server:
   port: 9001
 
 # Configure the public key to use for verifying the incoming JWT tokens
-security:
-  sessions: NEVER
-  oauth2:
-    resource:
-      jwt:
-        keyValue: |
-           -----BEGIN PUBLIC KEY-----
-           MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoTOQ4uIILzJmZGumYUQo
-           UnSsRudErY9pdVdDNfZrI/wWwx+KbLv3P9rhkyU/wwAIiTINqjXmI7p5nRsqvShJ
-           huuTWUzHtkxG3lgbn1UfKDUgq87HK9W3/d7wvUVjRoqhOuj+tRTMy5NjRk+c1IoH
-           PyWCTF51axAoy4CX+iP5cJ+rQnhHlb9MLX8bXMO5l1D2a84jTp4TREjgD23i/NwB
-           PWlR4mGR1PyaQC2NgY3nDXukuxAfHQ4hgE+WaPlNS6xYh9yarS4GBaEhzjg/yFIy
-           NM4+YheC+n8i0SpQZxYRYVjSk8VScGbrh2L/Iw7fBPB1pcxJRmjCDSbEqx6RS6SM
-           DwIDAQAB
-           -----END PUBLIC KEY-----
+#security:
+#  sessions: NEVER
+#  oauth2:
+#    resource:
+#      jwt:
+#        keyValue: |
+#           -----BEGIN PUBLIC KEY-----
+#           MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoTOQ4uIILzJmZGumYUQo
+#           UnSsRudErY9pdVdDNfZrI/wWwx+KbLv3P9rhkyU/wwAIiTINqjXmI7p5nRsqvShJ
+#           huuTWUzHtkxG3lgbn1UfKDUgq87HK9W3/d7wvUVjRoqhOuj+tRTMy5NjRk+c1IoH
+#           PyWCTF51axAoy4CX+iP5cJ+rQnhHlb9MLX8bXMO5l1D2a84jTp4TREjgD23i/NwB
+#           PWlR4mGR1PyaQC2NgY3nDXukuxAfHQ4hgE+WaPlNS6xYh9yarS4GBaEhzjg/yFIy
+#           NM4+YheC+n8i0SpQZxYRYVjSk8VScGbrh2L/Iw7fBPB1pcxJRmjCDSbEqx6RS6SM
+#           DwIDAQAB
+#           -----END PUBLIC KEY-----

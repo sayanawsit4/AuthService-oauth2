@@ -259,3 +259,10 @@ CREATE TABLE viomeauth2.user_authority (
     FOREIGN KEY (authority) REFERENCES viomeauth2.authority ("name")
 );
  
+ 
+ INSERT INTO "user" (user_id,username,email, password, activated) VALUES ('123','piomin', 'piotr.minkowski@gmail.com', '15eefd099f840a5d278544c8eb22d6beee6b1c4725fee0184128696615b353a2', true);
+
+INSERT INTO user_authority (user_id,authority) VALUES ('123', 'ROLE_USER');
+INSERT INTO user_authority (user_id,authority) VALUES ('123', 'ROLE_ADMIN');
+
+alter table user_authority drop column email;

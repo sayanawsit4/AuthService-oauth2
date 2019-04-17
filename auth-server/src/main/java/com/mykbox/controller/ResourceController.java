@@ -46,6 +46,9 @@ public class ResourceController {
 
     @Autowired
     private UserRepository userRepository;
+//
+//    @Autowired
+//    private TokenStore tokenStore;
 
     @Resource(name = "tokenStore")
     TokenStore tokenStore;

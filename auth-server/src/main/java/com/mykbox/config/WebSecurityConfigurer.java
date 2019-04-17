@@ -99,6 +99,7 @@ public class WebSecurityConfigurer
     }
 
     @Bean
+
     @ConfigurationProperties(prefix = "spring.datasource")
     public DataSource oauthDataSource() {
         return DataSourceBuilder.create().build();

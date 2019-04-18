@@ -1,9 +1,7 @@
-# Make the application available at http://localhost:7070/authserver
 server:
   port: 7070
   contextPath: /authserver
 
-# Our certificate settings for enabling JWT tokens
 jwt:
   certificate:
     store:
@@ -13,11 +11,17 @@ jwt:
       alias: myauthkey
       password: sayan
 
+spring:
+  jpa:
+    generate-ddl: true
+  datasource:
+    url: jdbc:postgresql://localhost/viome?currentSchema=viomeauth2
+    username: viome
+    password: viome123
+
 token:
   validity: 212000
-  type: jwt
 
-      
 security:
   oauth2:
     resource:

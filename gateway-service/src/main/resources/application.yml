@@ -11,7 +11,7 @@ security:
       clientId: authserver
       clientSecret: passwordforauthserver
     resource:
-      userInfoUri: http://localhost:7070/authserver/secured/user
+      userInfoUri: http://localhost:7070/authserver/api/user
 
 person:
   url: http://localhost:9000/person

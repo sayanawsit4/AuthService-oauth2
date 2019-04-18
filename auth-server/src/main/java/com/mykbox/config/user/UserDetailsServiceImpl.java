@@ -1,6 +1,5 @@
-package com.mykbox.security;
+package com.mykbox.config.user;
 
-import com.mykbox.config.MediUser;
 import com.mykbox.domain.Authority;
 import com.mykbox.domain.User;
 import com.mykbox.repository.UserRepository;
@@ -53,9 +52,17 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             grantedAuthorities.add(grantedAuthority);
         }
 
-       //return new org.springframework.security.core.userdetails.User(userFromDatabase.getUsername(), userFromDatabase.getPassword(), grantedAuthorities);
-        return new MediUser(userFromDatabase.getUsername(), userFromDatabase.getPassword(), true,
-                true, true, true, grantedAuthorities, "zombie@vite.com");
+        return new ExtendedUser(userFromDatabase.getUsername(),
+                                userFromDatabase.getPassword(),
+                                true,
+                                true,
+                                true,
+                                true,
+                                 grantedAuthorities,
+                                 userFromDatabase.getEmail(),
+                                 userFromDatabase.getUserId(),
+                                 userFromDatabase.getFirstName(),
+                                 userFromDatabase.getLastName());
     }
     
 }

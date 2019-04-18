@@ -1,10 +1,9 @@
-package com.mykbox.config;
+package com.mykbox.config.auth;
 
 import java.security.KeyPair;
 
-import com.mykbox.security.UserDetailsServiceImpl;
+import com.mykbox.config.user.UserDetailsServiceImpl;
  import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -14,6 +13,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
@@ -27,11 +27,9 @@ import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeSe
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 import javax.sql.DataSource;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 
 
 @Configuration
@@ -50,6 +48,11 @@ public class AuthServerConfigurer
     public void setAuthenticationManagerBean(AuthenticationManager authenticationManagerBean) {
         this.authenticationManagerBean = authenticationManagerBean;
     }
+
+//    @Autowired
+//    public void authenticationManagerBean(AuthenticationManagerBuilder builder) throws Exception {
+//        builder.userDetailsService(userDetailsService());
+//    }
 
     @Value("${jwt.certificate.store.file}")
     private Resource keystore;
@@ -147,7 +150,7 @@ public class AuthServerConfigurer
                 //if(true).accessTokenConverter(accessTokenConverter())
                 .userDetailsService(userDetailsService());
 
-        if(false) endpoints.accessTokenConverter(accessTokenConverter());
+        if(true) endpoints.accessTokenConverter(accessTokenConverter());
     }
 
 

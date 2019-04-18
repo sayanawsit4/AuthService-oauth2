@@ -1,4 +1,4 @@
-package com.mykbox.config;
+package com.mykbox.config.swagger;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

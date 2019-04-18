@@ -1,6 +1,6 @@
 package com.mykbox.controller;
 
-import com.mykbox.config.AuthorityPropertyEditor;
+import com.mykbox.config.user.AuthorityPropertyEditor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;

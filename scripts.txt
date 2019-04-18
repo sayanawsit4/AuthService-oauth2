@@ -24,9 +24,8 @@ CREATE TABLE viomeauth2.user (
   username VARCHAR(50) NOT NULL PRIMARY KEY,
   email VARCHAR(50),
   password VARCHAR(500),
-  activated BOOLEAN DEFAULT FALSE,
-  activationkey VARCHAR(50) DEFAULT NULL,
-  resetpasswordkey VARCHAR(50) DEFAULT NULL
+ activated BOOLEAN DEFAULT FALSE,
+
 );	
 
 select * from "user";
@@ -56,6 +55,8 @@ INSERT INTO user_authority (username,authority) VALUES ('piomin', 'ROLE_USER');
 INSERT INTO user_authority (username,authority) VALUES ('piomin', 'ROLE_ADMIN');
 
 alter table user_authority add constraint FKeh9b2lkkmmj4rvnv2q1y2furc foreign key (username) references user
+
+alter table  "user" add column
 
 INSERT INTO user_authority (username,authority) VALUES ('piomin', 'ROLE_USER');
 INSERT INTO user_authority (username,authority) VALUES ('piomin', 'ROLE_ADMIN');	
@@ -191,6 +192,10 @@ INSERT INTO user_authority (username,authority) VALUES ('sayan', 'ROLE_USER');*/
 
 alter table "user" add column user_id BIGINT;
 
+alter table "user" add column firstname  varchar (255),add column lastname  varchar (255);
+alter table "user" add column lastname  varchar (255);
+
+
 alter table "user" drop column user_id;
 alter table "user" alter column email type varchar (255) UNIQUE;
 
@@ -226,6 +231,21 @@ CONSTRAINT SPRING_SESSION_ATTRIBUTES_FK FOREIGN KEY (SESSION_ID) REFERENCES SPRI
 );
 
 
+alter table "user" add column firstname  varchar (255),add column lastname  varchar (255);
+
+alter table "user" add column providerid  varchar (255),add column phone  BIGINT;
+
+
+CREATE TABLE contacts (
+    contact_id uuid DEFAULT uuid_generate_v4 (),
+    first_name VARCHAR NOT NULL,
+    last_name VARCHAR NOT NULL,
+    email VARCHAR NOT NULL,
+    phone VARCHAR,
+    PRIMARY KEY (contact_id)
+)
+
+
 ALTER TABLE  "user"  DROP CONSTRAINT user_pkey;
 
 ALTER TABLE  "user"  DROP CONSTRAINT user_pkey;
@@ -241,14 +261,21 @@ delete from "user_authority";
 //DROP TABLE "user";
 
 CREATE TABLE viomeauth2.user (
-  user_id BIGINT,
+  user_id uuid  NOT NULL PRIMARY KEY,
   username VARCHAR(50),
-  email VARCHAR(50) NOT NULL PRIMARY KEY,
+  email VARCHAR(50),
   password VARCHAR(500),
   activated BOOLEAN DEFAULT FALSE,
-  activationkey VARCHAR(50) DEFAULT NULL,
-  resetpasswordkey VARCHAR(50) DEFAULT NULL
-);	
+  first_name varchar (255),
+  last_name varchar (255),
+  phone BIGINT,
+  provider_id varcha(255) DEFAULT 'Viome'
+  );
+
+
+ alter table "user" add column firstname  varchar (255),add column lastname  varchar (255);
+
+ alter table "user" add column providerid  varchar (255),add column phone  BIGINT;
 
 DROP TABLE viomeauth2.user_authority;
 
@@ -266,3 +293,6 @@ INSERT INTO user_authority (user_id,authority) VALUES ('123', 'ROLE_USER');
 INSERT INTO user_authority (user_id,authority) VALUES ('123', 'ROLE_ADMIN');
 
 alter table user_authority drop column email;
+
+
+alter table "user" alter column email type varchar (255);

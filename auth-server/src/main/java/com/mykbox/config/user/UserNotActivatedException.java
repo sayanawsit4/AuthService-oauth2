@@ -1,4 +1,4 @@
-package com.mykbox.security;
+package com.mykbox.config.user;
 
 import org.springframework.security.core.AuthenticationException;
 

@@ -1,4 +1,4 @@
-package com.mykbox.config;
+package com.mykbox.config.web;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;

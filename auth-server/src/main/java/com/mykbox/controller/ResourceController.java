@@ -1,7 +1,9 @@
 package com.mykbox.controller;
 
-import com.mykbox.config.MediUser;
+import com.mykbox.config.user.ExtendedUser;
 import com.mykbox.domain.User;
+import com.mykbox.dto.updatePasswordRequest;
+import com.mykbox.dto.userResponse;
 import com.mykbox.repository.UserRepository;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +13,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.jwt.Jwt;
 import org.springframework.security.jwt.JwtHelper;
-import org.springframework.security.jwt.crypto.sign.RsaSigner;
 import org.springframework.security.jwt.crypto.sign.RsaVerifier;
 import org.springframework.security.jwt.crypto.sign.SignatureVerifier;
-import org.springframework.security.jwt.crypto.sign.Signer;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -32,8 +34,6 @@ import javax.annotation.Resource;
 import java.security.KeyPair;
 import java.security.Principal;
 import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 
@@ -46,6 +46,10 @@ public class ResourceController {
 
     @Autowired
     private UserRepository userRepository;
+
+
+    @Autowired
+    private UserDetailsService userDetailsService;
 //
 //    @Autowired
 //    private TokenStore tokenStore;
@@ -81,9 +85,13 @@ public class ResourceController {
         List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + "USER"));
         OAuth2Request oauth2Request = new OAuth2Request(requestParameters, "authserver", authorities, approved, new HashSet<String>(Arrays.asList("testy")), null, null, responseTypes, null);
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken("piomin", "N/A", authorities);
-        OAuth2Authentication auth = new OAuth2Authentication(oauth2Request, authenticationToken);
 
+
+
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetailsService.loadUserByUsername("piotr.minkowski@gmail.com"), "N/A", authorities);
+
+        OAuth2Authentication auth = new OAuth2Authentication(oauth2Request, authenticationToken);
+        //authenticationToken.setDetails( userDetailsService.loadUserByUsername("piomin"));
         DefaultTokenServices tokenServices = new DefaultTokenServices();
         tokenServices.setTokenStore(configuration.getEndpointsConfigurer().getTokenStore());
         tokenServices.setSupportRefreshToken(true);
@@ -185,7 +193,7 @@ public class ResourceController {
 
     @RequestMapping("/principalcheck")
     public String getStores(Principal principal) {
-        MediUser activeUser = (MediUser) ((Authentication) principal).getPrincipal();
+        ExtendedUser activeUser = (ExtendedUser) ((Authentication) principal).getPrincipal();
         System.out.println(activeUser.getEmail());
         return activeUser.getEmail();
 
@@ -217,10 +225,63 @@ public class ResourceController {
         }
         return "done";
     }
+    
+    // TODO: 4/18/2019 legacy
+    @RequestMapping("/api/createUser")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
+    public String createUser(@RequestBody User user) {
+        Optional<User> temp = Optional.ofNullable(userRepository.findByEmail(user.getEmail()));
+        if (temp.isPresent()) {
+            return "user already exists";
+        } else {
+            userRepository.save(user);
+            return "created successfully";
+        }
+    }
 
-    @RequestMapping("/secured/user")
-    public Principal user(Principal user, OAuth2Authentication auth) {
-        return user;
+    // TODO: 4/18/2019 legacy
+    @RequestMapping("/api/updateUser")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
+    public String updateUser(@RequestBody User user) {
+        Optional<User> temp = Optional.ofNullable(userRepository.findByEmail(user.getEmail()));
+        if (temp.isPresent()) {
+            user.setUserId(temp.get().getUserId());
+            userRepository.save(user);
+            return "user updated successfully";
+        } else {
+            return "user not present";
+        }
+    }
+
+    // TODO: 4/18/2019 legacy
+    @RequestMapping("/api/updatePassword")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
+    public String updateUser(@RequestBody updatePasswordRequest updatePasswordRequest) {
+        User user = null;
+        Optional<User> temp = Optional.ofNullable(userRepository.findByEmail(updatePasswordRequest.getEmail()));
+        if (temp.isPresent()) {
+            user = temp.get();
+            user.setUserId(temp.get().getUserId());
+            user.setPassword(new BCryptPasswordEncoder().encode(updatePasswordRequest.getNewPassword()));
+            userRepository.save(user);
+            return "password updated successfully";
+        } else {
+            return "user not present";
+        }
+    }
+
+
+
+    @RequestMapping("/api/user")
+    public userResponse user(Principal user, OAuth2Authentication auth) {
+        ExtendedUser extendedUser = (ExtendedUser)auth.getPrincipal();
+        userResponse userResponse = new userResponse();
+        userResponse.setUserId(extendedUser.getUserid());
+        userResponse.setUsername(extendedUser.getEmail());
+        userResponse.setEmail(extendedUser.getEmail());
+        userResponse.setFirst_name(extendedUser.getfirstName());
+        userResponse.setLast_name(extendedUser.getlastName());
+        return userResponse;
     }
 
 }

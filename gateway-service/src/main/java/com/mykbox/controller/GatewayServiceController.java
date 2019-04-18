@@ -21,7 +21,7 @@ public class GatewayServiceController {
     @GetMapping("/auth-code")
     Mono<String> useOauthWithAuthCode(@RegisteredOAuth2AuthorizedClient("authserver") OAuth2AuthorizedClient client) {
         Mono<String> retrievedResource = webClient.get()
-                .uri("http://localhost:7070/authserver/secured/user")
+                .uri("http://localhost:7070/authserver/api/user")
                 .attributes(oauth2AuthorizedClient(client))
                 .retrieve()
                 .bodyToMono(String.class);
@@ -36,7 +36,7 @@ public class GatewayServiceController {
         oauth2User.map(OAuth2User::getAttributes).subscribe(System.out::println);
 
         Mono<String> retrievedResource = webClient.get()
-                .uri("http://localhost:7070/authserver/secured/user")
+                .uri("http://localhost:7070/authserver/api/user")
                 .attributes(oauth2AuthorizedClient(client))
                 .retrieve()
                 .bodyToMono(String.class);

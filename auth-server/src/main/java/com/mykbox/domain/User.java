@@ -21,8 +21,8 @@ public class User {
 	@Column(name = "user_id")
 	private UUID userId;
 
-	@Size(min = 0, max = 50)
-	private String username;
+/*	@Size(min = 0, max = 50)
+	private String username;*/
 
 	@Size(min = 0, max = 500)
 	private String password;
@@ -34,14 +34,14 @@ public class User {
 	private boolean activated;
 
 	@Size(min = 0, max = 100)
-	@Column(name = "firstname")
-	private String firstName;
+	@Column(name = "first_name")
+	private String first_name;
 
 	@Size(min = 0, max = 100)
-	@Column(name = "lastname")
+	@Column(name = "last_nme")
 	private String lastName;
 
-	@Size(min = 0, max = 100)
+/*	@Size(min = 0, max = 100)
 	@Column(name = "activationkey")
 	private String activationKey;
 
@@ -53,7 +53,7 @@ public class User {
 	private Long phone;
 
 	@Column(name = "providerId")
-	private String providerId;
+	private String providerId;*/
 
 	@ManyToMany
 	@JoinTable(name = "user_authority", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "authority"))

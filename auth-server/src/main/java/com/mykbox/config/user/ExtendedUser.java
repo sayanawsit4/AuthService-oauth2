@@ -12,7 +12,7 @@ public class ExtendedUser extends User{
     private final String firstName;
     private final String lastName;
 
-    public ExtendedUser(String username, String password, boolean enabled,
+    public ExtendedUser(String username,String password, boolean enabled,
                         boolean accountNonExpired, boolean credentialsNonExpired,
                         boolean accountNonLocked,
                         Collection authorities,

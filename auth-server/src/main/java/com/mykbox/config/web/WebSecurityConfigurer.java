@@ -5,8 +5,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
-import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -14,6 +12,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import com.mykbox.config.user.UserDetailsServiceImpl;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -29,9 +29,14 @@ public class WebSecurityConfigurer
 
 
 
-    @Bean
+    /*@Bean
     public PasswordEncoder passwordEncoder() {
         return new ShaPasswordEncoder(256);
+    }*/
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Override
@@ -44,8 +49,7 @@ public class WebSecurityConfigurer
 //            .and().csrf()
 //            .and().formLogin().loginPage("/login");
 
-        http
-                .authorizeRequests()
+        http    .authorizeRequests()
                 .antMatchers("/login","/logout.do").permitAll()
                 .antMatchers("/**").authenticated()
                 .antMatchers("/authserver/**").authenticated()
@@ -62,7 +66,7 @@ public class WebSecurityConfigurer
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/gettoken","/tokens","/webjars/**","/resources/**","/getjwttoken/**");
+        web.ignoring().antMatchers("/getAccessTokenByEmail","/tokens","/webjars/**","/resources/**","/getjwttoken/**","/authenticateSSO/**");
     }
 
 

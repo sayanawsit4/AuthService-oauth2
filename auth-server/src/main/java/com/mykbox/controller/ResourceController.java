@@ -2,19 +2,27 @@ package com.mykbox.controller;
 
 import com.mykbox.config.user.ExtendedUser;
 import com.mykbox.domain.User;
+import com.mykbox.dto.authenticateUser;
 import com.mykbox.dto.updatePasswordRequest;
 import com.mykbox.dto.userResponse;
 import com.mykbox.repository.UserRepository;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.jwt.Jwt;
 import org.springframework.security.jwt.JwtHelper;
 import org.springframework.security.jwt.crypto.sign.RsaVerifier;
@@ -25,12 +33,14 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.security.oauth2.provider.token.ConsumerTokenServices;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import java.security.KeyPair;
 import java.security.Principal;
 import java.security.PrivateKey;
@@ -46,6 +56,9 @@ public class ResourceController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Resource(name="tokenServices")
+    ConsumerTokenServices contokenServices;
 
 
     @Autowired
@@ -73,49 +86,56 @@ public class ResourceController {
     private Integer validity;
 
     // TODO: 2/28/2019 :protect this endpoint with xauth headers as per AuthService 1.0 implementation
-    @RequestMapping("/gettoken")
+    @RequestMapping("/getAccessTokenByEmail")
     public @ResponseBody
-    String gettoken() {
+    String gettoken(
+            @RequestParam(value = "expiry_extension", required = false) Optional <Integer> expiryExtension
+    ) {
 
-        System.out.println("get token123");
+        Integer extendedValidity = 0;
+        String Scope ="ad-hoc";
+
+
+
+        if(expiryExtension.isPresent()) {
+
+            System.out.println("expiryExtension --->"+expiryExtension.get());
+
+              if(expiryExtension.get().equals(0)) {
+                  Scope = "one-time";
+                  extendedValidity=0;
+              }
+              else
+              {
+                //  Scope ="ad-hoc";
+                  extendedValidity = validity + expiryExtension.get();
+              }
+          }
+        else
+            extendedValidity = validity ;
+
+     //   System.out.println("Scope-------->"+Scope);
+        System.out.println("get token123-------->"+extendedValidity);
         Map<String, String> requestParameters = new HashMap<String, String>();
         boolean approved = true;
         Set<String> responseTypes = new HashSet<String>();
         responseTypes.add("code");
         List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + "USER"));
-        OAuth2Request oauth2Request = new OAuth2Request(requestParameters, "authserver", authorities, approved, new HashSet<String>(Arrays.asList("testy")), null, null, responseTypes, null);
-
-
-
+        OAuth2Request oauth2Request = new OAuth2Request(requestParameters, "authserver", authorities, approved, new HashSet<String>(Arrays.asList(Scope)), null, null, responseTypes, null);
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetailsService.loadUserByUsername("piotr.minkowski@gmail.com"), "N/A", authorities);
-
         OAuth2Authentication auth = new OAuth2Authentication(oauth2Request, authenticationToken);
-        //authenticationToken.setDetails( userDetailsService.loadUserByUsername("piomin"));
         DefaultTokenServices tokenServices = new DefaultTokenServices();
         tokenServices.setTokenStore(configuration.getEndpointsConfigurer().getTokenStore());
         tokenServices.setSupportRefreshToken(true);
         tokenServices.setClientDetailsService(configuration.getEndpointsConfigurer().getClientDetailsService());
         tokenServices.setTokenEnhancer(configuration.getEndpointsConfigurer().getTokenEnhancer());
-        tokenServices.setAccessTokenValiditySeconds(217200);
-
-        // ConsumerTokenServices tokenServices2 =configuration.getEndpointsConfigurer().getConsumerTokenServices();
-
-        // AuthorizationServerTokenServices tokenService = (DefaultTokenServices)tokenServices2; //new DefaultTokenServices();
-        // configuration.getEndpointsConfigurer().getTokenServices();
-
-        // ClientDetailsService clientDetailsService = configuration.getEndpointsConfigurer().getClientDetailsService();
-        // ClientDetails clientDetails = clientDetailsService.loadClientByClientId("authserver");
-        //clientDetails.
-
-
-        //AuthorizationServerTokenServices tokenService = configuration.getEndpointsConfigurer().getTokenServices();
+        tokenServices.setAccessTokenValiditySeconds(extendedValidity);
+     // tokenServices.setAccessTokenValiditySeconds(configuration.getEndpointsConfigurer().getTokenServices().);
         OAuth2AccessToken token = tokenServices.createAccessToken(auth);
-
         System.out.println(token.getExpiration());
         System.out.println(token.getValue());
         return token.getValue();
-
     }
 
     @RequestMapping("/getjwttoken")
@@ -147,7 +167,9 @@ public class ResourceController {
 
     @RequestMapping("/gettokenExtended")
     public @ResponseBody
-    String gettokenExtended() {
+    String gettokenExtended(
+            @RequestParam(value = "expiry_extension", required = false) Optional <String> expiryExtension
+    ) {
 
         Map<String, String> requestParameters = new HashMap<String, String>();
         boolean approved = true;
@@ -190,6 +212,50 @@ public class ResourceController {
 //        tokenServices.revokeToken(tokenId);
 //        return tokenId;
 //    }
+
+    @RequestMapping(method = RequestMethod.POST,value="/authenticateSSO")
+    public @ResponseBody
+     String authenticateSSO(@RequestBody authenticateUser authenticateUser,HttpServletResponse response) {
+
+       // return  "invalid credentials";
+System.out.println(authenticateUser.getEmail());
+
+
+        Map<String, String> requestParameters = new HashMap<String, String>();
+        ExtendedUser temp= (ExtendedUser)userDetailsService.loadUserByUsername(authenticateUser.getEmail());
+        PasswordEncoder passwordEncoder  =  new BCryptPasswordEncoder();
+
+/*        System.out.println(authenticateUser.getPassword());
+         System.out.println(new BCryptPasswordEncoder().encode(authenticateUser.getPassword()));
+        System.out.println(temp.getPassword());
+         System.out.println(BCrypt.checkpw(authenticateUser.getPassword(),temp.getPassword()));*/
+
+
+        if(BCrypt.checkpw(authenticateUser.getPassword(),temp.getPassword()))
+        {
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(temp, authenticateUser.getPassword(), temp.getAuthorities());
+            Set<String> responseTypes = new HashSet<String>();
+            responseTypes.add("code");
+            OAuth2Request oauth2Request = new OAuth2Request(requestParameters, "authserver", temp.getAuthorities(), true, new HashSet<String>(Arrays.asList("ad-hoc")), null, null, responseTypes, null);
+            OAuth2Authentication auth = new OAuth2Authentication(oauth2Request, authenticationToken);
+            DefaultTokenServices tokenServices = new DefaultTokenServices();
+            tokenServices.setTokenStore(configuration.getEndpointsConfigurer().getTokenStore());
+            tokenServices.setSupportRefreshToken(true);
+            tokenServices.setClientDetailsService(configuration.getEndpointsConfigurer().getClientDetailsService());
+            tokenServices.setTokenEnhancer(configuration.getEndpointsConfigurer().getTokenEnhancer());
+            tokenServices.setAccessTokenValiditySeconds(validity);
+            // tokenServices.setAccessTokenValiditySeconds(configuration.getEndpointsConfigurer().getTokenServices().);
+            OAuth2AccessToken token = tokenServices.createAccessToken(auth);
+            System.out.println(token.getExpiration());
+            System.out.println(token.getValue());
+            response.addHeader("token", token.getValue());
+            return authenticateUser.getEmail();// "token created";
+        }
+        else
+            return  "invalid credentials";
+    }
+
+
 
     @RequestMapping("/principalcheck")
     public String getStores(Principal principal) {
@@ -254,9 +320,16 @@ public class ResourceController {
     }
 
     // TODO: 4/18/2019 legacy
-    @RequestMapping("/api/updatePassword")
+    @ApiOperation(value = "Update password", response = String.class)
+    @RequestMapping(value = "/api/updatePassword", method = RequestMethod.POST)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "password updated successfully", response = String.class),
+            @ApiResponse(code = 401, message = "Unauthorized"),
+            @ApiResponse(code = 403, message = "Forbidden"),
+            @ApiResponse(code = 404, message = "Not Found"),
+            @ApiResponse(code = 500, message = "Failure")})
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public String updateUser(@RequestBody updatePasswordRequest updatePasswordRequest) {
+    public ResponseEntity updateUser(@RequestBody updatePasswordRequest updatePasswordRequest) {
         User user = null;
         Optional<User> temp = Optional.ofNullable(userRepository.findByEmail(updatePasswordRequest.getEmail()));
         if (temp.isPresent()) {
@@ -264,17 +337,39 @@ public class ResourceController {
             user.setUserId(temp.get().getUserId());
             user.setPassword(new BCryptPasswordEncoder().encode(updatePasswordRequest.getNewPassword()));
             userRepository.save(user);
-            return "password updated successfully";
+            return new ResponseEntity("password updated successfully",HttpStatus.OK);
         } else {
-            return "user not present";
+            //return "user not present";
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
     }
 
 
 
     @RequestMapping("/api/user")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
     public userResponse user(Principal user, OAuth2Authentication auth) {
+
+       // auth.getOAuth2Request().
+       // OAuth2Authentication.
+        final OAuth2AuthenticationDetails details = (OAuth2AuthenticationDetails) auth.getDetails();
+        final OAuth2AccessToken accessToken = tokenStore.readAccessToken(details.getTokenValue());
+
+       // ConsumerTokenServices tokenServices = new tokenServices() ;
+
+        if (accessToken.getScope().contains("one-time") && accessToken.getScope().size() == 1)
+        contokenServices.revokeToken(details.getTokenValue());//tokenServices.
+
+        //DefaultTokenServices tokenServices = new DefaultTokenServices();
+      //  tokenServices.setTokenStore(configuration.getEndpointsConfigurer().getTokenStore());
+
+      //  if (accessToken.getScope().contains("one-time") && accessToken.getScope().size() == 1)
+             //tokenServices.revokeToken(tokenId);
+
+
         ExtendedUser extendedUser = (ExtendedUser)auth.getPrincipal();
+
+
         userResponse userResponse = new userResponse();
         userResponse.setUserId(extendedUser.getUserid());
         userResponse.setUsername(extendedUser.getEmail());

@@ -89,7 +89,8 @@ public class AuthServerConfigurer
     @Bean
     public TokenStore tokenStore() {
         System.out.println("inside tokenstore");
-       return new JdbcTokenStore(oauthDataSource());
+       //return new JdbcTokenStore(oauthDataSource());
+        return new CustomJdbcTokenStore(oauthDataSource());
         //return new JwtTokenStore(accessTokenConverter());
     }
 

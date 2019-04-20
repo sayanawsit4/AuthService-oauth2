@@ -31,14 +31,14 @@ public class User {
 	@Size(min = 0, max = 50)
 	private String email;
 
-	private boolean activated;
+	private boolean activated = true;
 
 	@Size(min = 0, max = 100)
 	@Column(name = "first_name")
-	private String first_name;
+	private String firstName;
 
 	@Size(min = 0, max = 100)
-	@Column(name = "last_nme")
+	@Column(name = "last_name")
 	private String lastName;
 
 /*	@Size(min = 0, max = 100)

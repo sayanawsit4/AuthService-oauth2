@@ -14,7 +14,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
-
+import com.mykbox.config.*;
 import javax.sql.DataSource;
 
 /**
@@ -43,8 +43,9 @@ public class ResourceConfigurer extends ResourceServerConfigurerAdapter {
     //@ConditionalOnProperty(name = "token-type",havingValue = "token")
     public TokenStore tokenStore() {
         System.out.println("inside tokenstore");
-        return new JdbcTokenStore(ouathDataSource());
-        //return new JwtTokenStore(accessTokenConverter());
+      //  return new CustomJdbcTokenStore(oauthDataSource());
+         return new JdbcTokenStore(ouathDataSource());
+         //return new JwtTokenStore(accessTokenConverter());
     }
 
     @Override

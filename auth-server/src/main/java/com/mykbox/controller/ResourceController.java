@@ -1,10 +1,12 @@
 package com.mykbox.controller;
 
 import com.mykbox.config.user.ExtendedUser;
+import com.mykbox.domain.OperationalAudit;
 import com.mykbox.domain.User;
 import com.mykbox.dto.authenticateUser;
 import com.mykbox.dto.updatePasswordRequest;
 import com.mykbox.dto.userResponse;
+import com.mykbox.repository.OpsAuditRepository;
 import com.mykbox.repository.UserRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -12,6 +14,9 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.boot.actuate.audit.listener.AuditApplicationEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,6 +54,7 @@ import java.util.*;
 
 @RestController
 @Api(value = "Authentication API", description = "Authenticate user using authorization token.")
+
 public class ResourceController {
 
     @Autowired
@@ -59,6 +65,9 @@ public class ResourceController {
 
     @Resource(name="tokenServices")
     ConsumerTokenServices contokenServices;
+
+    @Autowired
+    OpsAuditRepository opsAuditRepository;
 
 
     @Autowired
@@ -121,7 +130,7 @@ public class ResourceController {
         Set<String> responseTypes = new HashSet<String>();
         responseTypes.add("code");
         List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + "USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + "ADMIN"));
         OAuth2Request oauth2Request = new OAuth2Request(requestParameters, "authserver", authorities, approved, new HashSet<String>(Arrays.asList(Scope)), null, null, responseTypes, null);
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetailsService.loadUserByUsername("piotr.minkowski@gmail.com"), "N/A", authorities);
         OAuth2Authentication auth = new OAuth2Authentication(oauth2Request, authenticationToken);
@@ -320,7 +329,8 @@ System.out.println(authenticateUser.getEmail());
     }
 
     // TODO: 4/18/2019 legacy
-    @ApiOperation(value = "Update password", response = String.class)
+
+     @ApiOperation(value = "Update password", response = String.class)
     @RequestMapping(value = "/api/updatePassword", method = RequestMethod.POST)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "password updated successfully", response = String.class),
@@ -329,7 +339,11 @@ System.out.println(authenticateUser.getEmail());
             @ApiResponse(code = 404, message = "Not Found"),
             @ApiResponse(code = 500, message = "Failure")})
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public ResponseEntity updateUser(@RequestBody updatePasswordRequest updatePasswordRequest) {
+    public ResponseEntity updateUser(@RequestBody updatePasswordRequest updatePasswordRequest, @SessionAttribute("trace-id") String trackId )  {
+
+
+        System.out.println("trackId....."+trackId);
+
         User user = null;
         Optional<User> temp = Optional.ofNullable(userRepository.findByEmail(updatePasswordRequest.getEmail()));
         if (temp.isPresent()) {
@@ -337,6 +351,11 @@ System.out.println(authenticateUser.getEmail());
             user.setUserId(temp.get().getUserId());
             user.setPassword(new BCryptPasswordEncoder().encode(updatePasswordRequest.getNewPassword()));
             userRepository.save(user);
+
+
+            OperationalAudit u = opsAuditRepository.findOne(UUID.fromString(trackId));
+            u.setUserId(temp.get().getUserId());
+
             return new ResponseEntity("password updated successfully",HttpStatus.OK);
         } else {
             //return "user not present";

@@ -25,6 +25,9 @@ public class LoggingTraceRepository implements TraceRepository {
     @Override
     public void add(Map<String, Object> traceInfo) {
         LOG.info(traceInfo.toString());
+     /*   Map test = (Map)traceInfo.get("headers");
+        Map test2 = (Map)test.get("request");
+        LOG.info(test2.get("user-agent").toString())*/;
         this.delegate.add(traceInfo);
     }
 }

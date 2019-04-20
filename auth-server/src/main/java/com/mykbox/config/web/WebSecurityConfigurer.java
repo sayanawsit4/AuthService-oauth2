@@ -1,5 +1,6 @@
 package com.mykbox.config.web;
 
+import com.mykbox.config.auth.CustomJdbcTokenStore;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -106,7 +107,8 @@ public class WebSecurityConfigurer
     @Bean
     public TokenStore tokenStore() {
         System.out.println("inside tokenstore");
-        return new JdbcTokenStore(oauthDataSource());
+        return new CustomJdbcTokenStore(oauthDataSource());
+        //return new JdbcTokenStore(oauthDataSource());
         //return new JwtTokenStore(accessTokenConverter());
     }
 

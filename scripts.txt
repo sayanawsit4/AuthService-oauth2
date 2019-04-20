@@ -349,3 +349,33 @@ update oauth_client_details  set access_token_validity=null
 
 INSERT INTO user_authority (user_id,authority) VALUES ('582a4263-3dfd-4bea-897c-88f7612bc165', 'ROLE_USER');
 INSERT INTO user_authority (user_id,authority) VALUES ('582a4263-3dfd-4bea-897c-88f7612bc165', 'ROLE_ADMIN');
+
+delete from oauth_access_token;
+
+update "user"  set password='15eefd099f840a5d278544c8eb22d6beee6b1c4725fee0184128696615b353a2' where email='piotr.minkowski@gmail.com';
+
+update oauth_client_details set autoapprove=true where client_id='authserver';
+
+alter table "oauth_access_token" add column expiration TIMESTAMP;
+
+
+CREATE TABLE viomeauth2.operational_audit (
+  ops_audit_rec_no uuid  NOT NULL PRIMARY KEY,
+  user_id uuid,
+  token_id VARCHAR(50),
+  ops_performed_by VARCHAR(50)
+  );
+
+
+
+drop table operational_audit;
+
+firstname
+last_nme
+
+alter table "user" drop column firstname;
+alter table "user" drop column last_nme;
+
+delete from "user" where email='sayan@gmail.com';
+
+insert into "user_authority" values ('8a62c880-a7b4-456f-b85f-688a2efa502a','ROLE_USER');

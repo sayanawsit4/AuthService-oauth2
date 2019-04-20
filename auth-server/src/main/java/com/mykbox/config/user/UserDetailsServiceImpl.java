@@ -62,7 +62,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                                  grantedAuthorities,
                                  userFromDatabase.getEmail(),
                                  userFromDatabase.getUserId(),
-                                 userFromDatabase.getFirst_name(),
+                                 userFromDatabase.getFirstName(),
                                  userFromDatabase.getLastName());
     }
     

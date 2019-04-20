@@ -93,3 +93,11 @@ Try to access
 it will prompt for user authentication at `http://localhost:7070/authserver/login`
 login with credentials defaults are admin:admin and user:user
 should display resource information which is protected under `http://localhost:9000/person`
+
+
+##TODOS
+1.Schedule token and audit table clean up.
+2.cloudwatch logs
+3.testing
+4.complete audit tables
+5.dictonary attack + captcha

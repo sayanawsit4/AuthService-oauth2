@@ -1,6 +1,7 @@
 package com.mykbox.config.audit;
 
 import com.mykbox.config.auth.CustomJdbcTokenStore;
+import com.mykbox.config.constants.Config;
 import com.mykbox.config.user.ExtendedUser;
 import com.mykbox.domain.AccessAudit;
 import com.mykbox.domain.OperationalAudit;
@@ -156,7 +157,7 @@ public class AttemptsLogger {
           //  operationalAudit.setUserAgent(request.);
             opsAuditRepository.save(operationalAudit);
 
-            request.getSession().setAttribute("trace-id",operationalAudit.getOpsAuditNo());
+            request.getSession().setAttribute(Config.OPS_TRACE_ID,operationalAudit.getOpsAuditNo());
 
            // List<Trace> test=  loggingTraceRepository.findAll();
             //System.out.println(test.get(0).getInfo());

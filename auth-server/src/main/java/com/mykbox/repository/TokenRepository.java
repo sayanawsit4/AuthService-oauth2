@@ -16,7 +16,7 @@ public interface TokenRepository  extends JpaRepository<AccessToken, Long> {
     void deleteAllExpiredSince(Date now);
 
     @Transactional
-    @Query("select userName from AccessToken t where t.tokenId <= ?1")
+    @Query("select userName from AccessToken t where t.tokenId = ?1")
     String findUsernameByToken(String token);
 
 }

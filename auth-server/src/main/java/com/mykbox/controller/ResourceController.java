@@ -51,6 +51,8 @@ import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @RestController
 @Api(value = "Authentication API", description = "Authenticate user using authorization token.")
@@ -98,7 +100,8 @@ public class ResourceController {
     @RequestMapping("/getAccessTokenByEmail")
     public @ResponseBody
     String gettoken(
-            @RequestParam(value = "expiry_extension", required = false) Optional <Integer> expiryExtension
+            @RequestParam(value = "expiry_extension", required = false) Optional <Integer> expiryExtension,
+            @RequestParam(value = "email") String email
     ) {
 
         Integer extendedValidity = 0;
@@ -129,10 +132,14 @@ public class ResourceController {
         boolean approved = true;
         Set<String> responseTypes = new HashSet<String>();
         responseTypes.add("code");
-        List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + "ADMIN"));
-        OAuth2Request oauth2Request = new OAuth2Request(requestParameters, "authserver", authorities, approved, new HashSet<String>(Arrays.asList(Scope)), null, null, responseTypes, null);
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetailsService.loadUserByUsername("piotr.minkowski@gmail.com"), "N/A", authorities);
+
+       /* List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + "ADMIN"));*/
+
+        //load user details
+        ExtendedUser ext= (ExtendedUser)userDetailsService.loadUserByUsername(email);
+        OAuth2Request oauth2Request = new OAuth2Request(requestParameters, "authserver", ext.getAuthorities(), approved, new HashSet<String>(Arrays.asList(Scope)), null, null, responseTypes, null);
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(ext, "N/A", ext.getAuthorities());
         OAuth2Authentication auth = new OAuth2Authentication(oauth2Request, authenticationToken);
         DefaultTokenServices tokenServices = new DefaultTokenServices();
         tokenServices.setTokenStore(configuration.getEndpointsConfigurer().getTokenStore());
@@ -339,24 +346,48 @@ System.out.println(authenticateUser.getEmail());
             @ApiResponse(code = 404, message = "Not Found"),
             @ApiResponse(code = 500, message = "Failure")})
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public ResponseEntity updateUser(@RequestBody updatePasswordRequest updatePasswordRequest, @SessionAttribute("trace-id") String trackId )  {
+    public ResponseEntity updateUser(@RequestBody updatePasswordRequest updatePasswordRequest,
+                                     @SessionAttribute("trace-id") String trackId,
+                                      OAuth2Authentication auth)  {
+
+
+
 
 
         System.out.println("trackId....."+trackId);
 
+
         User user = null;
         Optional<User> temp = Optional.ofNullable(userRepository.findByEmail(updatePasswordRequest.getEmail()));
         if (temp.isPresent()) {
-            user = temp.get();
-            user.setUserId(temp.get().getUserId());
-            user.setPassword(new BCryptPasswordEncoder().encode(updatePasswordRequest.getNewPassword()));
-            userRepository.save(user);
+
+            //Check if the token belongs to ADMIN or the requestor
 
 
-            OperationalAudit u = opsAuditRepository.findOne(UUID.fromString(trackId));
-            u.setUserId(temp.get().getUserId());
 
-            return new ResponseEntity("password updated successfully",HttpStatus.OK);
+            ExtendedUser extendedUser = (ExtendedUser)auth.getPrincipal();
+
+
+           List roles= extendedUser.getAuthorities().stream().map( s -> s.getAuthority()).collect(Collectors.toList());
+
+           if(roles.contains("ROLE_ADMIN") || temp.get().getEmail().equals(extendedUser.getEmail()))
+            {
+                user = temp.get();
+                user.setUserId(temp.get().getUserId());
+                user.setPassword(new BCryptPasswordEncoder().encode(updatePasswordRequest.getNewPassword()));
+                userRepository.save(user);
+
+
+                OperationalAudit u = opsAuditRepository.findOne(UUID.fromString(trackId));
+                u.setUserId(temp.get().getUserId());
+
+                return new ResponseEntity("password updated successfully", HttpStatus.OK);
+            }
+
+            else
+            {
+                return new ResponseEntity("You are not authorized to perform this action", HttpStatus.UNAUTHORIZED);
+            }
         } else {
             //return "user not present";
             return new ResponseEntity(HttpStatus.NOT_FOUND);

@@ -135,6 +135,11 @@ public class AttemptsLogger {
             ExtendedUser extendedUser = (ExtendedUser) details.getPrincipal();
 
             System.out.println(extendedUser.getUserid());
+            String tokentemp = customJdbcTokenStore.extractTokenKey(oauthsDetails.getTokenValue());
+            System.out.println("token key is---------->"+customJdbcTokenStore.extractTokenKey(oauthsDetails.getTokenValue()));
+            System.out.println("find by username-------->"+tokenRepository.findUsernameByToken(tokentemp));
+            //System.out.println(extendedUser.getUserid());
+            //System.out.println(extendedUser.getUserid());
 
             User user = (User) userRepository.findByEmail(tokenRepository.findUsernameByToken(customJdbcTokenStore.extractTokenKey(oauthsDetails.getTokenValue())));
 

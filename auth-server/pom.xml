@@ -122,6 +122,16 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.21</version>
+        </dependency>
+        <dependency>
+            <groupId>ca.pjer</groupId>
+            <artifactId>logback-awslogs-appender</artifactId>
+            <version>1.1.1</version>
+        </dependency>
      </dependencies>
 
     <dependencyManagement>
@@ -159,5 +169,16 @@
         <rest-assured.version>3.1.0</rest-assured.version>
         <spring-cloud.version>Dalston.SR4</spring-cloud.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>http://repo1.maven.org/maven2/</url>
+        </repository>
+        <repository>
+            <id>boxfuse-repo</id>
+            <url>https://files.boxfuse.com</url>
+        </repository>
+    </repositories>
 
 </project>

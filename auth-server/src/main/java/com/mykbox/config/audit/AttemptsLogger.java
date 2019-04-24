@@ -47,7 +47,9 @@ public class AttemptsLogger {
     @Autowired
     OpsAuditRepository opsAuditRepository;
 
-    private static final Logger LOGGER = Logger.getLogger(AttemptsLogger.class);
+    //private static final Logger LOGGER = Logger.getLogger(AttemptsLogger.class);
+    private static final org.slf4j.Logger LOGGER  = org.slf4j.LoggerFactory.getLogger(AttemptsLogger.class);
+
 
     @EventListener
     public void auditEventHappened(AuditApplicationEvent auditApplicationEvent) {
@@ -112,7 +114,7 @@ public class AttemptsLogger {
             OAuth2AuthenticationDetails oauthsDetails = (OAuth2AuthenticationDetails) details.getDetails();
             ExtendedUser extendedUser = (ExtendedUser) details.getPrincipal();
 
-            LOGGER.info(extendedUser.getUserid());
+            LOGGER.info(extendedUser.getUserid().toString());
             String tokentemp = customJdbcTokenStore.extractTokenKey(oauthsDetails.getTokenValue());
             LOGGER.info("token key is---------->" + customJdbcTokenStore.extractTokenKey(oauthsDetails.getTokenValue()));
             LOGGER.info("find by username-------->" + tokenRepository.findUsernameByToken(tokentemp));

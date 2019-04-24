@@ -1,9 +1,7 @@
 package com.mykbox.config.auth;
 
-import java.security.KeyPair;
-
 import com.mykbox.config.user.UserDetailsServiceImpl;
- import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -13,7 +11,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
@@ -28,31 +25,15 @@ import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
+
 import javax.sql.DataSource;
-import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import java.security.KeyPair;
 
 
 @Configuration
 @EnableAuthorizationServer
 @Order(6)
-public class AuthServerConfigurer
-    extends
-        AuthorizationServerConfigurerAdapter {
-
-    private AuthenticationManager authenticationManagerBean;
-
-    @Autowired
-    private CustomAccessTokenConverter customAccessTokenConverter;
-
-    @Autowired
-    public void setAuthenticationManagerBean(AuthenticationManager authenticationManagerBean) {
-        this.authenticationManagerBean = authenticationManagerBean;
-    }
-
-//    @Autowired
-//    public void authenticationManagerBean(AuthenticationManagerBuilder builder) throws Exception {
-//        builder.userDetailsService(userDetailsService());
-//    }
+public class AuthServerConfigurer extends AuthorizationServerConfigurerAdapter {
 
     @Value("${jwt.certificate.store.file}")
     private Resource keystore;
@@ -69,6 +50,18 @@ public class AuthServerConfigurer
     @Value("${token.validity}")
     private Integer validity;
 
+    @Value("${token.jwt}")
+    private Boolean jwt;
+
+    private AuthenticationManager authenticationManagerBean;
+
+    @Autowired
+    private CustomAccessTokenConverter customAccessTokenConverter;
+
+    @Autowired
+    public void setAuthenticationManagerBean(AuthenticationManager authenticationManagerBean) {
+        this.authenticationManagerBean = authenticationManagerBean;
+    }
 
     @Bean
     public UserDetailsService userDetailsService() {
@@ -83,15 +76,12 @@ public class AuthServerConfigurer
 
     @Bean
     public JdbcClientDetailsService clientDetailsService() {
-         return new JdbcClientDetailsService(oauthDataSource());
+        return new JdbcClientDetailsService(oauthDataSource());
     }
 
     @Bean
     public TokenStore tokenStore() {
-        System.out.println("inside tokenstore");
-       //return new JdbcTokenStore(oauthDataSource());
         return new CustomJdbcTokenStore(oauthDataSource());
-        //return new JwtTokenStore(accessTokenConverter());
     }
 
     @Bean
@@ -105,38 +95,11 @@ public class AuthServerConfigurer
     }
 
 
-
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.withClientDetails(clientDetailsService());
     }
 
-  /*  @Override
-    public void configure(
-        ClientDetailsServiceConfigurer clients)
-        throws Exception {
-        clients
-            .inMemory()
-            .withClient("authserver")
-            .secret("passwordforauthserver")
-            .redirectUris("http://localhost:8080/login/oauth2/code/authserver")
-            .authorizedGrantTypes("authorization_code",
-             "refresh_token", "implicit","password","client_credentials")
-            .scopes("myscope")
-            .autoApprove(true)
-            .accessTokenValiditySeconds(30000)
-            .refreshTokenValiditySeconds(1800)
-
-        .and()
-                .withClient("vibe")
-                .secret("passwordforvibeserver")
-                .redirectUris("http://localhost:8081/login/oauth2/code/vibe")
-                .authorizedGrantTypes("authorization_code","refresh_token", "implicit","password","client_credentials")
-                .scopes("myscope")
-                .autoApprove(true)
-                .accessTokenValiditySeconds(30)
-                .refreshTokenValiditySeconds(1800);
-    }*/
 
     @Override
     public void configure(
@@ -148,20 +111,16 @@ public class AuthServerConfigurer
                 .tokenStore(tokenStore())
                 .authenticationManager(authenticationManagerBean)
                 .tokenServices(tokenServices())
-                //if(true).accessTokenConverter(accessTokenConverter())
                 .userDetailsService(userDetailsService());
-
-        if(true) endpoints.accessTokenConverter(accessTokenConverter());
+        if (jwt) endpoints.accessTokenConverter(accessTokenConverter());
     }
 
-
-
-   @Bean
+    @Bean
     public JwtAccessTokenConverter jwtAccessTokenConverter() {
         KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(
-            keystore, keystorePassword.toCharArray());
+                keystore, keystorePassword.toCharArray());
         KeyPair keyPair = keyStoreKeyFactory.getKeyPair(
-            keyAlias, keyPassword.toCharArray());
+                keyAlias, keyPassword.toCharArray());
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
         converter.setKeyPair(keyPair);
         return converter;
@@ -176,7 +135,7 @@ public class AuthServerConfigurer
         CustomTokenConverter tokenConverter = new CustomTokenConverter();
         tokenConverter.setAccessTokenConverter(customAccessTokenConverter);
         tokenConverter.setKeyPair(keyPair);
-         return tokenConverter;
+        return tokenConverter;
     }
 
     @Bean

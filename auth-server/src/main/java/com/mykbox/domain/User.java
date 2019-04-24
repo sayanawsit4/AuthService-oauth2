@@ -1,9 +1,12 @@
 package com.mykbox.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 import org.hibernate.validator.constraints.Email;
+import org.springframework.beans.factory.annotation.Required;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -12,6 +15,8 @@ import java.util.UUID;
 
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "user",schema = "viomeauth2")
 public class User {
 
@@ -20,9 +25,6 @@ public class User {
  	@org.hibernate.annotations.Type(type="pg-uuid")
 	@Column(name = "user_id")
 	private UUID userId;
-
-/*	@Size(min = 0, max = 50)
-	private String username;*/
 
 	@Size(min = 0, max = 500)
 	private String password;
@@ -40,20 +42,6 @@ public class User {
 	@Size(min = 0, max = 100)
 	@Column(name = "last_name")
 	private String lastName;
-
-/*	@Size(min = 0, max = 100)
-	@Column(name = "activationkey")
-	private String activationKey;
-
-	@Size(min = 0, max = 100)
-	@Column(name = "resetpasswordkey")
-	private String resetPasswordKey;
-
-	@Column(name = "phone")
-	private Long phone;
-
-	@Column(name = "providerId")
-	private String providerId;*/
 
 	@ManyToMany
 	@JoinTable(name = "user_authority", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "authority"))

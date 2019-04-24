@@ -26,10 +26,11 @@ public class AuthorizationAuditListener extends AbstractAuthorizationAuditListen
         Map<String, Object> data = new HashMap<>();
         data.put("type", event.getAccessDeniedException().getClass().getName());
         data.put("message", event.getAccessDeniedException().getMessage());
-        data.put("requestUrl", ((FilterInvocation)event.getSource()).getRequestUrl() );
+        if (event.getSource() instanceof FilterInvocation)
+            data.put("requestUrl", ((FilterInvocation) event.getSource()).getRequestUrl());
         if (event.getAuthentication().getDetails() != null) {
-            data.put("details",event.getAuthentication().getDetails());
+            data.put("details", event.getAuthentication().getDetails());
         }
-        publish(new AuditEvent(event.getAuthentication().getName(),AUTHORIZATION_FAILURE, data));
+        publish(new AuditEvent(event.getAuthentication().getName(), AUTHORIZATION_FAILURE, data));
     }
 }

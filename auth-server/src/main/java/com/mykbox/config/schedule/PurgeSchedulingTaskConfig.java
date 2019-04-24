@@ -5,7 +5,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @EnableScheduling
-public class SpringTaskConfig {
+public class PurgeSchedulingTaskConfig {
     //
 }
 

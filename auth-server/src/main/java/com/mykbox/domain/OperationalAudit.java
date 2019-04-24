@@ -49,6 +49,12 @@ public class OperationalAudit {
 
     @Column(name = "status")
     private String status;
+
+    @Column(name = "scope")
+    private String scope;
+
+    @Column(name = "response")
+    private String response;
 /*
     @Column(name = "created_time")
     @CreationTimestamp

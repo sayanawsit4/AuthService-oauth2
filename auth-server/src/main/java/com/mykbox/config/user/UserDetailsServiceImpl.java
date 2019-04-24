@@ -30,16 +30,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(final String login) {
 
         log.debug("Authenticating {}", login);
-        System.out.println("Authenticating {}"+ login);
         String lowercaseLogin = login.toLowerCase();
 
         User userFromDatabase;
-      //  if(lowercaseLogin.contains("@")) {
-            userFromDatabase = userRepository.findByEmail(lowercaseLogin);
-        //}
-//        else {
-//            userFromDatabase = userRepository.findByUsernameCaseInsensitive(lowercaseLogin);
-//        }
+        userFromDatabase = userRepository.findByEmail(lowercaseLogin);
 
         if (userFromDatabase == null) {
             throw new UsernameNotFoundException("User " + lowercaseLogin + " was not found in the database");
@@ -54,16 +48,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
 
         return new ExtendedUser(userFromDatabase.getEmail(),
-                                 userFromDatabase.getPassword(),
-                                true,
-                                true,
-                                true,
-                                true,
-                                 grantedAuthorities,
-                                 userFromDatabase.getEmail(),
-                                 userFromDatabase.getUserId(),
-                                 userFromDatabase.getFirstName(),
-                                 userFromDatabase.getLastName());
+                userFromDatabase.getPassword(),
+                true,
+                true,
+                true,
+                true,
+                grantedAuthorities,
+                userFromDatabase.getEmail(),
+                userFromDatabase.getUserId(),
+                userFromDatabase.getFirstName(),
+                userFromDatabase.getLastName());
     }
-    
+
 }

@@ -21,15 +21,12 @@ spring:
 
 token:
   validity: 212000
+  jwt: false
 
 
-
-#    5am every day
+#  every 1 sec
 purge:
    cron.expression: 1 * * * * *
-
-
-
 
 security:
   oauth2:
@@ -46,3 +43,5 @@ security:
                  NM4+YheC+n8i0SpQZxYRYVjSk8VScGbrh2L/Iw7fBPB1pcxJRmjCDSbEqx6RS6SM
                  DwIDAQAA
                  -----END PUBLIC KEY-----
+
+ApplicationMode: Legacy

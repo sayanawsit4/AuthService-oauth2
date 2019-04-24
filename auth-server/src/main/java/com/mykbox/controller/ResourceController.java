@@ -5,8 +5,6 @@ import com.mykbox.config.constants.Dto;
 import com.mykbox.config.constants.Token;
 import com.mykbox.config.user.ExtendedUser;
 import com.mykbox.dto.*;
-import com.mykbox.repository.OpsAuditRepository;
-import com.mykbox.repository.UserRepository;
 import com.mykbox.service.TokenService;
 import com.mykbox.service.UserService;
 import io.swagger.annotations.Api;
@@ -19,12 +17,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
-import org.springframework.security.oauth2.provider.token.ConsumerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -48,17 +43,11 @@ import static com.mykbox.config.utils.StringUtils.emailFormatChecker;
 
 public class ResourceController {
 
-    @Autowired
-    private AuthorizationServerEndpointsConfiguration configuration;
+    @Value("${token.validity}")
+    private Integer validity;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Resource(name = "tokenServices")
-    ConsumerTokenServices contokenServices;
-
-    @Autowired
-    OpsAuditRepository opsAuditRepository;
+    @Value("${ApplicationMode}")
+    private String ApplicationMode;
 
     @Autowired
     UserService userService;
@@ -66,29 +55,8 @@ public class ResourceController {
     @Autowired
     TokenService tokenService;
 
-    @Autowired
-    private UserDetailsService userDetailsService;
-
     @Resource(name = "tokenStore")
     TokenStore tokenStore;
-
-    @Value("${jwt.certificate.store.file}")
-    private org.springframework.core.io.Resource keystore;
-
-    @Value("${jwt.certificate.store.password}")
-    private String keystorePassword;
-
-    @Value("${jwt.certificate.key.alias}")
-    private String keyAlias;
-
-    @Value("${jwt.certificate.key.password}")
-    private String keyPassword;
-
-    @Value("${token.validity}")
-    private Integer validity;
-
-    @Value("${ApplicationMode}")
-    private String ApplicationMode;
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -133,34 +101,34 @@ public class ResourceController {
         }
 
         switch (ApplicationMode) {
-                case Config.LEGACY_APP_MODE:
-                    switch (responseObj) {
-                        case Dto.SUCESSFULL:
-                            return new ResponseEntity<>(Dto.CREATE_USER_SUCESSFULLY, HttpStatus.OK);
-                        case Dto.EXISTS:
-                            return new ResponseEntity<>(Dto.CREATE_USER_EXISTS, HttpStatus.OK);
-                        case Dto.BAD_REQUEST:
-                            return new ResponseEntity<>(Dto.CREATE_USER_BAD_REQ, HttpStatus.BAD_REQUEST);
-                        case Dto.UNAUTHORIZE:
-                            return new ResponseEntity<>(Dto.CREATE_USER_UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
-                        case Dto.FAILURE:
-                            return new ResponseEntity<>(Dto.CREATE_USER_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR);
-                        default:
-                            return new ResponseEntity<>(Dto.NOTFOUND, HttpStatus.NOT_FOUND);
-                    }
-                default:
-                    switch (responseObj) {
-                        case Dto.SUCESSFULL:
-                            return new ResponseEntity<>(new successfullResponse(Dto.SUCESSFULL, Dto.CREATE_USER_SUCESSFULLY), HttpStatus.OK);
-                        case Dto.EXISTS:
-                            return new ResponseEntity<>(new unsuccessfullResponse(responseObj, Dto.CREATE_USER_EXISTS), HttpStatus.OK);
-                        case Dto.UNAUTHORIZE:
-                            return new ResponseEntity<>(new unsuccessfullResponse(responseObj, Dto.CREATE_UNAUTHORIZED), HttpStatus.UNAUTHORIZED);
-                        case Dto.BAD_REQUEST:
-                            return new ResponseEntity<>(new unsuccessfullResponse(responseObj, Dto.CREATE_USER_BAD_REQ), HttpStatus.BAD_REQUEST);
-                        default:
-                            return new ResponseEntity<>(new unsuccessfullResponse(responseObj, Dto.NOTFOUND), HttpStatus.NOT_FOUND);
-                    }
+            case Config.LEGACY_APP_MODE:
+                switch (responseObj) {
+                    case Dto.SUCESSFULL:
+                        return new ResponseEntity<>(Dto.CREATE_USER_SUCESSFULLY, HttpStatus.OK);
+                    case Dto.EXISTS:
+                        return new ResponseEntity<>(Dto.CREATE_USER_EXISTS, HttpStatus.OK);
+                    case Dto.BAD_REQUEST:
+                        return new ResponseEntity<>(Dto.CREATE_USER_BAD_REQ, HttpStatus.BAD_REQUEST);
+                    case Dto.UNAUTHORIZE:
+                        return new ResponseEntity<>(Dto.CREATE_USER_UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
+                    case Dto.FAILURE:
+                        return new ResponseEntity<>(Dto.CREATE_USER_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR);
+                    default:
+                        return new ResponseEntity<>(Dto.NOTFOUND, HttpStatus.NOT_FOUND);
+                }
+            default:
+                switch (responseObj) {
+                    case Dto.SUCESSFULL:
+                        return new ResponseEntity<>(new successfullResponse(Dto.SUCESSFULL, Dto.CREATE_USER_SUCESSFULLY), HttpStatus.OK);
+                    case Dto.EXISTS:
+                        return new ResponseEntity<>(new unsuccessfullResponse(responseObj, Dto.CREATE_USER_EXISTS), HttpStatus.OK);
+                    case Dto.UNAUTHORIZE:
+                        return new ResponseEntity<>(new unsuccessfullResponse(responseObj, Dto.CREATE_UNAUTHORIZED), HttpStatus.UNAUTHORIZED);
+                    case Dto.BAD_REQUEST:
+                        return new ResponseEntity<>(new unsuccessfullResponse(responseObj, Dto.CREATE_USER_BAD_REQ), HttpStatus.BAD_REQUEST);
+                    default:
+                        return new ResponseEntity<>(new unsuccessfullResponse(responseObj, Dto.NOTFOUND), HttpStatus.NOT_FOUND);
+                }
         }
     }
 
@@ -249,8 +217,8 @@ public class ResourceController {
             @ApiResponse(code = 500, message = Dto.FAILURE)})
     @PreAuthorize("hasAnyRole('" + ROLE_ADMIN + "', '" + ROLE_USER + "')")
     public ResponseEntity updateUser(@RequestBody @Valid updateUserRequest updateUserRequest,
-                             @SessionAttribute(Config.OPS_TRACE_ID) String trackId,
-                             OAuth2Authentication auth) {
+                                     @SessionAttribute(Config.OPS_TRACE_ID) String trackId,
+                                     OAuth2Authentication auth) {
 
         String responseObj;
 
@@ -367,14 +335,14 @@ public class ResourceController {
             @ApiResponse(code = 500, message = Dto.FAILURE)})
     @PreAuthorize("hasAnyRole('" + ROLE_ADMIN + "', '" + ROLE_USER + "')")
     public ResponseEntity changeUserActiveStatus(@RequestBody @Valid changeUserActiveStatusRequest changeUserActiveStatusRequest,
-                                         @SessionAttribute(Config.OPS_TRACE_ID) String trackId,
-                                         OAuth2Authentication auth) {
+                                                 @SessionAttribute(Config.OPS_TRACE_ID) String trackId,
+                                                 OAuth2Authentication auth) {
 
         String responseObj;
 
 
         if (emailFormatChecker(changeUserActiveStatusRequest.getEmail())) {
-            responseObj = userService.changeUserStatus(changeUserActiveStatusRequest,trackId,(ExtendedUser) auth.getPrincipal());
+            responseObj = userService.changeUserStatus(changeUserActiveStatusRequest, trackId, (ExtendedUser) auth.getPrincipal());
         } else {
             responseObj = Dto.BAD_REQUEST;
         }
@@ -404,60 +372,60 @@ public class ResourceController {
 
     }
 
-        // TODO: 4/18/2019 legacy
-        @ApiOperation(value = "Update password", response = String.class)
-        @RequestMapping(value = "/api/updatePassword", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-        @ApiResponses(value = {
-                @ApiResponse(code = 200, message = Dto.SUCESSFULL, response = String.class),
-                @ApiResponse(code = 401, message = Dto.UPDATE_UNAUTHORIZED),
-                @ApiResponse(code = 404, message = Dto.UPDATE_USER_NOT_FOUND),
-                @ApiResponse(code = 500, message = Dto.FAILURE)})
-        @PreAuthorize("hasAnyRole('" + ROLE_ADMIN + "', '" + ROLE_USER + "')")
-        public ResponseEntity updatePassword(@RequestBody @Valid updatePasswordRequest updatePasswordRequest,
-                                             @SessionAttribute(Config.OPS_TRACE_ID) String trackId,
-                                             OAuth2Authentication auth) {
+    // TODO: 4/18/2019 legacy
+    @ApiOperation(value = "Update password", response = String.class)
+    @RequestMapping(value = "/api/updatePassword", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = Dto.SUCESSFULL, response = String.class),
+            @ApiResponse(code = 401, message = Dto.UPDATE_UNAUTHORIZED),
+            @ApiResponse(code = 404, message = Dto.UPDATE_USER_NOT_FOUND),
+            @ApiResponse(code = 500, message = Dto.FAILURE)})
+    @PreAuthorize("hasAnyRole('" + ROLE_ADMIN + "', '" + ROLE_USER + "')")
+    public ResponseEntity updatePassword(@RequestBody @Valid updatePasswordRequest updatePasswordRequest,
+                                         @SessionAttribute(Config.OPS_TRACE_ID) String trackId,
+                                         OAuth2Authentication auth) {
 
-            OAuth2AuthenticationDetails details = (OAuth2AuthenticationDetails) auth.getDetails();
-            OAuth2AccessToken accessToken = tokenStore.readAccessToken(details.getTokenValue());
+        OAuth2AuthenticationDetails details = (OAuth2AuthenticationDetails) auth.getDetails();
+        OAuth2AccessToken accessToken = tokenStore.readAccessToken(details.getTokenValue());
 
-            //Revoke token if one-time
-            tokenService.revokeToken(accessToken, details);
+        //Revoke token if one-time
+        tokenService.revokeToken(accessToken, details);
 
-            String responseObj;
+        String responseObj;
 
-            if (emailFormatChecker(updatePasswordRequest.getEmail())) {
-                responseObj = userService.updatePassword(updatePasswordRequest, (ExtendedUser) auth.getPrincipal(), trackId);
+        if (emailFormatChecker(updatePasswordRequest.getEmail())) {
+            responseObj = userService.updatePassword(updatePasswordRequest, (ExtendedUser) auth.getPrincipal(), trackId);
 
-            } else {
-                responseObj = Dto.BAD_REQUEST;
-            }
-
-            tokenService.UpdateOperationalAudit(trackId,
-                    responseObj,
-                    (ExtendedUser) auth.getPrincipal(),
-                    accessToken.getScope().stream().map(Object::toString).collect(Collectors.joining(",")));
-
-            switch (ApplicationMode) {
-                case Config.LEGACY_APP_MODE:
-                    switch (responseObj) {
-                        case Dto.SUCESSFULL:
-                            return new ResponseEntity<>(Dto.UPDATE_USER_PASSWORD_SUCESSFULLY, HttpStatus.OK);
-                        case Dto.BAD_REQUEST:
-                            return new ResponseEntity<>(Dto.UPDATE_USER_PASSWORD_BAD_REQ_EMAIL, HttpStatus.BAD_REQUEST);
-                        case Dto.FAILURE:
-                            return new ResponseEntity<>(Dto.UPDATE_USER_PASSWORD_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR);
-                        default:
-                            return new ResponseEntity<>(Dto.AUTHENTICATE_SSO_INVALID_CREDS, HttpStatus.NOT_FOUND);
-                    }
-                default:
-                    switch (responseObj) {
-                        case Dto.SUCESSFULL:
-                            return new ResponseEntity<>(new updateResponse(Dto.SUCESSFULL), HttpStatus.OK);
-                        default:
-                            return new ResponseEntity<>(new unsuccessfullResponse(responseObj, Dto.UPDATE_USER_NOT_FOUND), HttpStatus.NOT_FOUND);
-                    }
-            }
+        } else {
+            responseObj = Dto.BAD_REQUEST;
         }
+
+        tokenService.UpdateOperationalAudit(trackId,
+                responseObj,
+                (ExtendedUser) auth.getPrincipal(),
+                accessToken.getScope().stream().map(Object::toString).collect(Collectors.joining(",")));
+
+        switch (ApplicationMode) {
+            case Config.LEGACY_APP_MODE:
+                switch (responseObj) {
+                    case Dto.SUCESSFULL:
+                        return new ResponseEntity<>(Dto.UPDATE_USER_PASSWORD_SUCESSFULLY, HttpStatus.OK);
+                    case Dto.BAD_REQUEST:
+                        return new ResponseEntity<>(Dto.UPDATE_USER_PASSWORD_BAD_REQ_EMAIL, HttpStatus.BAD_REQUEST);
+                    case Dto.FAILURE:
+                        return new ResponseEntity<>(Dto.UPDATE_USER_PASSWORD_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR);
+                    default:
+                        return new ResponseEntity<>(Dto.AUTHENTICATE_SSO_INVALID_CREDS, HttpStatus.NOT_FOUND);
+                }
+            default:
+                switch (responseObj) {
+                    case Dto.SUCESSFULL:
+                        return new ResponseEntity<>(new updateResponse(Dto.SUCESSFULL), HttpStatus.OK);
+                    default:
+                        return new ResponseEntity<>(new unsuccessfullResponse(responseObj, Dto.UPDATE_USER_NOT_FOUND), HttpStatus.NOT_FOUND);
+                }
+        }
+    }
 
 
     @RequestMapping("/api/user")
